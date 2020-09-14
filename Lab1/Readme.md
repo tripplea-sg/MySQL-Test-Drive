@@ -56,7 +56,7 @@ exit;
 ```
 
 ## 5. Create database with empty root password and change password after login
-By using this way, it does not required to view the temporary root password from server log for first time login using root@localhost \
+By using this way, it does not required to view the temporary root password from server log for first time login using root@localhost
 ### 5.1. Remove all database files on the datadir
 ```
 rm -Rf /home/opc/data/3306/*
@@ -74,5 +74,91 @@ Change password of root@'localhost' to 'root'
 ```
 alter user root@'localhost' identified by 'root';
 ```
+Shutdown and exit mysql
+```
+shutdown;
+exit;
+```
+### 5.3. Start database using mysqld_safe
+MySQL has 1 server process and if the server process get killed then database will be down. To provide autostart in Linux, we can register mysql database into linux systemd, and hence it can be started up automatically if the service is enabled. Another way to provide monitoring and autostart to mysql server process is using mysqld_safe. \
+
+Start database using mysqld_safe:
+```
+mysqld_safe --defaults-file=3306.cnf &
+```
+Try to connect as root with password 'root'
+```
+mysql -uroot -h127.0.0.1 -proot
+```
+Show databases (it will show all default databases installed on the instance) and exit
+```
+show databases;
+exit;
+```
+Now we try to kill mysql server process from OS level. First, get the Linux PID:
+```
+ps -ef | grep mysqld | grep -v mysqld_safe
+```
+The output will show something like the following:
+```
+opc      xxxx yyyy  0 17:29 pts/0    00:00:00 /home/opc/bin/tar/mysql-commercial-8.0.21-el7-x86_64/bin/mysqld --defaults-file=3306.cnf --basedir=/home/opc/bin/tar/mysql-commercial-8.0.21-el7-x86_64 --datadir=/home/opc/data/3306 --plugin-dir=/home/opc/bin/tar/mysql-commercial-8.0.21-el7-x86_64/lib/plugin --log-error=/home/opc/data/3306/mysqld.log --pid-file=test-drive-preparation.pid --socket=/home/opc/data/3306/mysqld.sock --port=3306
+```
+Then, kill the above process by replacing "xxxx" with actual PID number:
+```
+kill -9 xxxx
+```
+Then, we will see mysqld process is automatically being restarted by mysqld_safe. Now, let's login again:
+```
+mysql -uroot -h127.0.0.1 -proot
+```
+By using mysqld_safe to start database, we can also restart database within mysql cli.
+```
+show databases;
+restart;
+show databases;
+show databases;
+exit;
+```
+## 6. Show database variables and other stuff
+Login to mysql
+```
+mysql -uroot -h127.0.0.1 -proot
+```
+check status:
+```
+status;
+```
+Show status of InnoDB Storage Engine:
+```
+show engine innodb status;
+```
+Show all session variables:
+```
+show variables;
+```
+Show specific variables (e.g. a variable called GTID_MODE or all variables contains the word "GTID"):
+```
+show variables like 'gtid_mode';
+show variables like '%gtid%';
+show variables like '%datadir%';
+show variables like 'innodb_file_per_table';
+show variables like 'innodb_flush_log_at_trx_commit';
+show variables like 'transaction_isolation';
+```
+How to set / change variables ? \
+Set transaction isolation from default "REPEATABLE-READ" into "READ-COMMITTED" (use "persist" for making the change persisted (or no change after restart).
+```
+set persist transaction_isolation='READ-COMMITTED';
+show variables like 'transaction_isolation';
+```
+Query mysql tablespaces and datafiles
+```
+select * from information_schema.innodb_tablespaces;
+select * from information_schema.innodb_datafiles;
+```
+
+
+
+
 
 
