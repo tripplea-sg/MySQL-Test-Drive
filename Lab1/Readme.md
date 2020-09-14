@@ -124,15 +124,15 @@ Login to mysql
 ```
 mysql -uroot -h127.0.0.1 -proot
 ```
-check status:
+### 6.1. check status:
 ```
 status;
 ```
-Show status of InnoDB Storage Engine:
+### 6.2. Show status of InnoDB Storage Engine:
 ```
 show engine innodb status;
 ```
-Show all session variables:
+### 6.3. Show all session variables:
 ```
 show variables;
 ```
@@ -151,11 +151,37 @@ Set transaction isolation from default "REPEATABLE-READ" into "READ-COMMITTED" (
 set persist transaction_isolation='READ-COMMITTED';
 show variables like 'transaction_isolation';
 ```
-Query mysql tablespaces and datafiles
+### 6.4. Query mysql tablespaces and datafiles
 ```
 select * from information_schema.innodb_tablespaces;
 SELECT FILE_ID, FILE_NAME, FILE_TYPE, TABLESPACE_NAME, FREE_EXTENTS, TOTAL_EXTENTS,  EXTENT_SIZE, INITIAL_SIZE, MAXIMUM_SIZE, AUTOEXTEND_SIZE, DATA_FREE, STATUS ENGINE FROM INFORMATION_SCHEMA.FILES;
 ```
+### 6.5. Sys.Diagnostics
+Creates a report of the current server status for diagnostic purposes. \
+Create a diagnostics report that starts an iteration every 30 seconds and runs for at most 120 seconds using the current Performance Schema settings.
+```
+tee diag.out;
+CALL sys.diagnostics(120, 30, 'current');
+notee;
+exit;
+```
+View file diag.out:
+```
+cat diag.out
+```
+## 7. Using Index and Histogram
+Login to mysql
+```
+mysql -uroot -h127.0.0.1 -proot
+```
+On mysql cli, do the following:
+```
+create database test;
+create table test.country (country_id int primary key, country_name varchar(10), population int);
+insert into test.country values (1, 
+
+
+
 
 
 
