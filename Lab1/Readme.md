@@ -154,8 +154,9 @@ show variables like 'transaction_isolation';
 Query mysql tablespaces and datafiles
 ```
 select * from information_schema.innodb_tablespaces;
-select * from information_schema.innodb_datafiles;
+SELECT FILE_ID, FILE_NAME, FILE_TYPE, TABLESPACE_NAME, FREE_EXTENTS, TOTAL_EXTENTS,  EXTENT_SIZE, INITIAL_SIZE, MAXIMUM_SIZE, AUTOEXTEND_SIZE, DATA_FREE, STATUS ENGINE FROM INFORMATION_SCHEMA.FILES;
 ```
+
 
 
 
