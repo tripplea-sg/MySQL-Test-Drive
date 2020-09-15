@@ -6,7 +6,7 @@ Introductory session to test drive the powerful MySQL database
 | Topics | Description |
 |--------|--------------------------|
 | [Lab 1](https://github.com/tripplea-sg/MySQL-Test-Drive/tree/master/Lab1) | MySQL Basic Installation |
-| Lab 2 | Transparent Data Encryption (TDE)  |
+| [Lab 2](https://github.com/tripplea-sg/MySQL-Test-Drive/tree/master/Lab2) | Transparent Data Encryption (TDE)  |
 | Lab 3 | MySQL Enterprise Audit |
 | Lab 4 | MySQL Enterprise Backup |
 | Lab 5 | MySQL Replicasets |
