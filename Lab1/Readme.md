@@ -174,11 +174,26 @@ Login to mysql
 ```
 mysql -uroot -h127.0.0.1 -proot
 ```
-On mysql cli, do the following:
+Run sql script to install database schema and insert data
 ```
-create database test;
-create table test.country (country_id int primary key, country_name varchar(10), population int);
-insert into test.country values (1, 
+source /home/opc/script/world_x.sql;
+show databases;
+use world_x;
+```
+Column ID is the primary key, therefore the following query will be fast because it does index range scan
+```
+explain format=tree select * from city where id>4055;
+```
+Compare to this one which is not using index (look at the number of rows examined)
+```
+explain format=tree select * from city where district='Florida';
+```
+If creating index against column district is not an option, try to use histogram to reduce number of rows examined
+```
+analyze table city update histogram on district with 1000 buckets;
+explain format=tree select * from city where district='Florida';
+```
+
 
 
 
