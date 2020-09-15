@@ -5,7 +5,7 @@ Introductory session to test drive the powerful MySQL database
 ## table of content:
 | Topics | Description |
 |--------|--------------------------|
-| Lab 1 | MySQL Basic Installation |
+| [Lab 1](https://github.com/tripplea-sg/MySQL-Test-Drive/tree/master/Lab1) | MySQL Basic Installation |
 | Lab 2 | MySQL Enterprise Audit   |
 | Lab 3 | Transparent Data Encryption |
 | Lab 4 | MySQL Enterprise Backup |
