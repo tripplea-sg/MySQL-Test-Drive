@@ -193,7 +193,38 @@ If creating index against column district is not an option, try to use histogram
 analyze table city update histogram on district with 1000 buckets;
 explain format=tree select * from city where district='Florida';
 ```
-
+## 8. Provision new database using Clone Plugin
+Install clone plugin
+```
+install plugin clone soname 'mysql_clone.so';
+create user clone@'%' identified by 'clone';
+grant backup_admin on *.* to clone@'%';
+show databases;
+exit;
+```
+Create, start database, and login to instance 3307
+```
+mysqld --defaults-file=3307.cnf --initialize-insecure
+mysqld_safe --defaults-file=3307.cnf &
+mysql -uroot -h127.0.0.1 -P3307
+```
+Install clone plugin into instance 3307 and start cloning procedure
+```
+show databases;
+select * from world_x.city;
+install plugin clone soname 'mysql_clone.so';
+set global valid_clone_donor_list='127.0.0.1:3306'
+clone instance from clone@'127.0.0.1':3306 identified by 'clone';
+show databases;
+show databases;
+select * from world_x.city;
+```
+shutdown and clean-up 3307
+```
+shutdown;
+exit;
+rm -Rf /home/opc/data/3307/*
+```
 
 
 
