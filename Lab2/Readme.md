@@ -63,7 +63,7 @@ Check content of table world_x.city without login to mysql (all values are encry
 ```
 strings -a /home/opc/data/3306/world_x/city.ibd
 ```
-## Rotate master key
+## 4. Rotate master key
 Check master key content
 ```
 cat /home/opc/data/3306/keyring-encrypted
@@ -82,4 +82,15 @@ exit;
 Check master key content (it's different compared to previous!):
 ```
 cat /home/opc/data/3306/keyring-encrypted
+```
+## 5. Set Encryption='N' on table world_x.city
+Login to mysql
+```
+mysql -uroot -h127.0.0.1 -proot
+```
+Unencrypt table world_x.city:
+```
+alter table world_x.city encryption='N';
+select name, encryption from information_schema.innodb_tablespaces where encryption='Y';
+exit;
 ```
