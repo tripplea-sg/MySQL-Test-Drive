@@ -29,3 +29,7 @@ mysqld_safe --defaults-file=/home/opc/config/3306.cnf &
 mysql -uroot -h127.0.0.1 -proot -e "show databases"
 mysql -uroot -h127.0.0.1 -proot -e "select * from temp.test"
 ```
+## 7. Shutdown database
+```
+mysqladmin -uroot -h127.0.0.1 -proot shutdown
+```
