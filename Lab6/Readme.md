@@ -38,7 +38,7 @@ router/start.sh
 ## 7.Prepare database users for application to connect
 ```
 mysql -uroot -h127.0.0.1 -e "create user appUser@'%' identified with mysql_native_password by 'appUser'; grant all privileges on *.* to appUser@'%';"
-mysql -uroot -h127.0.0.1 -e "create user root@'%' identified with mysql_native_password by ''; grant all all privileges on *.* to root@'%';"
+mysql -uroot -h127.0.0.1 -e "create user root@'%' identified with mysql_native_password by ''; grant all all privileges on *.* to root@'%' with grant option;"
 ```
 ## 8. Disable firewall and launch application
 ```
