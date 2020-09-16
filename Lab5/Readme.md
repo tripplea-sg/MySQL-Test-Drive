@@ -39,7 +39,7 @@ router/start.sh
 mysql -uroot -h127.0.0.1 -e "create user root@'%' identified by 'root'; grant all privileges on *.* to root@'%' with grant option;"
 mysql -uroot -h127.0.0.1 -P6446 -proot -e "source /home/opc/script/world_x.sql"
 ```
-## 8. Check if world_x schema is available on 3307 and 3308
+## 8. Check if world_x schema is available on 3306 and 3307
 ```
 mysql -uroot -h127.0.0.1 -e "show databases;"
 mysql -uroot -h127.0.0.1 -P3307 -e "show databases;"
