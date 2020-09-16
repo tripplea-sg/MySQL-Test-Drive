@@ -21,7 +21,7 @@ rm -Rf /home/opc/data/3306/*
 ```
 ls /home/opc/config/backup/
 mysqlbackup --datadir=/home/opc/data/3306 --backup-dir=/home/opc/config/backup/<sub-directory-full-backup> copy-back-and-apply-log
-mysqlbackup --datadir=/home/opc/data/3306 --incremental-backup-dir=/home/opc/config/backup/2020-09-15_08-52-08 --incremental copy-back-and-apply-log
+mysqlbackup --datadir=/home/opc/data/3306 --incremental-backup-dir=/home/opc/config/backup/<sub-directory-incremental-backup> --incremental copy-back-and-apply-log
 mysqld_safe --defaults-file=/home/opc/config/3306.cnf &
 ```
 ## 6. Check the data
