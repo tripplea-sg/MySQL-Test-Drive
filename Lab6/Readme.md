@@ -13,6 +13,9 @@ mysqld --defaults-file=3308.cnf --initialize-insecure
 mysqld_safe --defaults-file=3306.cnf &
 mysqld_safe --defaults-file=3307.cnf &
 mysqld_safe --defaults-file=3308.cnf &
+
+mysql -uroot -h127.0.0.1 -P3306 -e "alter user root@'localhost' identified with mysql_native_password by '';"
+
 ```
 ## 3. Configure Instance 3306, 3307, and 3308
 ```
