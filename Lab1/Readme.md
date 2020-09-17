@@ -213,7 +213,7 @@ Install clone plugin into instance 3307 and start cloning procedure
 show databases;
 select * from world_x.city;
 install plugin clone soname 'mysql_clone.so';
-set global clone_valid_donor_list='127.0.0.1:3306'
+set global clone_valid_donor_list='127.0.0.1:3306';
 clone instance from clone@'127.0.0.1':3306 identified by 'clone';
 show databases;
 show databases;
