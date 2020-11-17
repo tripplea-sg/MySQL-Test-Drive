@@ -49,7 +49,7 @@ mysql -uroot -h127.0.0.1 -e "create user root@'%' identified with mysql_native_p
 ```
 ## 8. Disable firewall and launch application
 ```
-systemctl stop firewalld
+sudo systemctl stop firewalld
 ```
 Launch web browser and go to URL "http://your-server-ip/demo"
 ## 9. Switch Primary from 3306 to 3307
