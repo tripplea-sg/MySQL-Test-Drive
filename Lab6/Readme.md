@@ -1,4 +1,10 @@
 # MySQL InnoDB Cluster
+Shutdown any running databases (if applicable):
+```
+mysqladmin -uroot -h127.0.0.1 -P3306 shutdown
+mysqladmin -uroot -h127.0.0.1 -P3307 shutdown
+mysqladmin -uroot -h127.0.0.1 -P3308 shutdown
+```
 ## 1. Prepare the instance
 ```
 rm -Rf /home/opc/data/3306/*
