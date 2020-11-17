@@ -13,6 +13,7 @@ rm -Rf /home/opc/data/3308/*
 ```
 ## 2. Create database instance 3306, 3307, and 3308
 ```
+cd /home/opc/config
 mysqld --defaults-file=3306.cnf --initialize-insecure
 mysqld --defaults-file=3307.cnf --initialize-insecure
 mysqld --defaults-file=3308.cnf --initialize-insecure
