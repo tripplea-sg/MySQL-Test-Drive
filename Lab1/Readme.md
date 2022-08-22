@@ -237,8 +237,20 @@ mysql -uroot -h127.0.0.1 -proot -e "alter user apps@'%' discard old password"
 mysql -uapps -h127.0.0.1 -papps2 -e "show databases"
 mysql -uapps -h127.0.0.1 -papps -e "show databases"
 ```
-
-
+### 6.4. Failed-Login Tracking and Temporary Account Locking
+DBA can configure user accounts such that too many consecutive login failures cause temporary account locking (A value of 0 disables the option).
+```
+mysql -uroot -h127.0.0.1 -proot
+  
+alter user apps@'%' FAILED_LOGIN_ATTEMPTS 4 PASSWORD_LOCK_TIME 3;
+alter user apps@'%' FAILED_LOGIN_ATTEMPTS 4 PASSWORD_LOCK_TIME unbounded;
+```
+The account is unlocked if currently temporarily locked. Account resets can be global for all accounts or per account: 
+- A server restart.  
+- FLUSH PRIVILEGES 
+- Successful login for the account.  
+- The lock duration passes 
+- Execution of an ALTER USER statement for the account that sets either FAILED_LOGIN_ATTEMPTS or PASSWORD_LOCK_TIME (or both) to any value (including the current option value), or execution of an ALTER USER ... UNLOCK statement for the account. 
   
   
 
