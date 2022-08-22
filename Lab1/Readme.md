@@ -15,29 +15,61 @@ sudo rpm -ivh mysql-shell-commercial-8.0.30-1.1.el7.x86_64.rpm
 unzip MySQL-Router-8.0.30.zip
 tar -zxvf mysql-router-commercial-8.0.30-el7-x86_64.tar.gz
 ```
+Create environment file to source MySQL Enterprise. Copy the following line and create $HOME/.8030.env file (command: vi $HOME/.8030.env)
+```
+PATH=$PATH:/home/opc/software/mysql-commercial-8.0.30-el7-x86_64/bin:/home/opc/software/mysql-router-commercial-8.0.30-el7-x86_64
+```
 
 ## 2. Create database with random root password (using "--initialize") and start database
-Source environment: a process that we need to include MySQL binary into $PATH
+Source environment: a process that we need to include MySQL into $PATH
 ```
-. 8021.env
+. $HOME/.8030.env
 ```
-See Option File 3306.cnf and examine the content.
+Create MySQL Database Directory
 ```
-cat 3306.cnf
+mkdir -p /home/opc/db/3306/data /home/opc/db/3306/innodb_data_home_dir /home/opc/db/3306/innodb_undo_directory /home/opc/db/3306/innodb_temp_tablespace_dir /home/opc/db/3306/innodb_temp_data_file_path /home/opc/db/3306/innodb_log_group_home_dir /home/opc/db/3306/log_bin
+```
+Create option file / configuration file for the database with the following content (command: vi /home/opc/db/3306/my.cnf)
+```
+[mysqld]
+datadir=/home/opc/db/3306/data
+binlog-format=ROW
+log-bin=/home/opc/db/3306/log_bin/bin
+innodb_data_home_dir=/home/opc/db/3306/innodb_data_home_dir
+innodb_undo_directory=/home/opc/db/3306/innodb_undo_directory
+innodb_temp_tablespaces_dir=/home/opc/db/3306/innodb_temp_tablespace_dir 
+innodb_temp_data_file_path=/home/opc/db/3306/innodb_temp_data_file_path/ibtmp1:12M:autoextend
+innodb_log_group_home_dir=/home/opc/db/3306/innodb_log_group_home_dir
+port=3306
+server_id=10
+socket=/home/opc/db/3306/data/mysqld.sock
+log-error=/home/opc/db/3306/data/mysqld.log
+enforce_gtid_consistency = ON
+gtid_mode = ON
+log_slave_updates = ON
+innodb_buffer_pool_size=12G
+innodb_buffer_pool_instances=8
+innodb_log_file_size=1G
+innodb_log_files_in_group=3
+innodb_flush_log_at_trx_commit=1
 ```
 Create database with random root password using the following:
 ```
-mysqld --defaults-file=3306.cnf --initialize
+mysqld --defaults-file=/home/opc/db/3306/my.cnf --initialize
 ```
-Get random temporary password from server log (see option file 3306.cnf, and look for variable "log-error")
+Get random temporary password from server log 
 ```
-cat /home/opc/data/3306/mysqld.log
+cat /home/opc/db/3306/my.cnf | grep log-error
+cat /home/opc/db/3306/data/mysqld.log | grep temporary | awk '{print $13}'
 ```
-Look at the temporary password written on the last line of the above output, and start database
+Start database
 ```
-mysqld --defaults-file=3306.cnf &
+mysqld --defaults-file=/home/opc/db/3306/my.cnf &
 ```
-
+Check if database instance is running
+```
+ps -ef | grep mysqld
+```
 ## 3. Login to database as root@'localhost' using temporary password and change the password
 Syntax: mysql -u<user> -h<ip/hostname> -p<password> -P<port> \
 If port is 3306 (standard), it does not mandatory to use -P3306
@@ -47,58 +79,24 @@ mysql -uroot -h127.0.0.1 -p
 Copy and paste the temporary password to login, and change password
 ```
 alter user root@'localhost' identified by 'root';
+shutdown;
 exit;
 ```
-
+Start database using mysqld_safe. MySQL has 1 server process and if the server process get killed then database will be down. To provide autostart in Linux, we can register mysql database into linux systemd, and hence it can be started up automatically if the service is enabled. Another way to provide monitoring and autostart to mysql server process is using mysqld_safe. \
+```
+mysqld_safe --defaults-file=/home/opc/db/3306/my.cnf &  
+```  
+Check if database instance is running
+```
+ps -ef | grep mysqld
+```
 ## 4. Login to database as root@'localhost' using the new password ("root")
 ```
 mysql -uroot -h127.0.0.1 -proot
 ```
-shutdown and exit from MySQL session
+Exit from MySQL session
 ```
-shutdown;
-exit;
-```
-
-## 5. Create database with empty root password and change password after login
-By using this way, it does not required to view the temporary root password from server log for first time login using root@localhost
-### 5.1. Remove all database files on the datadir
-```
-rm -Rf /home/opc/data/3306/*
-```
-### 5.2. Create database with empty root password (using "--initialize-insecure") and login to change password
-```
-mysqld --defaults-file=3306.cnf --initialize-insecure
-mysqld --defaults-file=3306.cnf &
-```
-Now database is up, and we can login. Please observe that we shall not use "-p" anymore because root password is empty.
-```
-mysql -uroot -h127.0.0.1 
-```
-Change password of root@'localhost' to 'root'
-```
-alter user root@'localhost' identified by 'root';
-```
-Shutdown and exit mysql
-```
-shutdown;
-exit;
-```
-### 5.3. Start database using mysqld_safe
-MySQL has 1 server process and if the server process get killed then database will be down. To provide autostart in Linux, we can register mysql database into linux systemd, and hence it can be started up automatically if the service is enabled. Another way to provide monitoring and autostart to mysql server process is using mysqld_safe. \
-
-Start database using mysqld_safe:
-```
-mysqld_safe --defaults-file=3306.cnf &
-```
-Try to connect as root with password 'root'
-```
-mysql -uroot -h127.0.0.1 -proot
-```
-Show databases (it will show all default databases installed on the instance) and exit
-```
-show databases;
-exit;
+mysql > exit;
 ```
 Now we try to kill mysql server process from OS level. First, get the Linux PID:
 ```
@@ -116,28 +114,16 @@ Then, we will see mysqld process is automatically being restarted by mysqld_safe
 ```
 mysql -uroot -h127.0.0.1 -proot
 ```
-By using mysqld_safe to start database, we can also restart database within mysql cli.
-```
-show databases;
-restart;
-show databases;
-show databases;
-exit;
-```
-## 6. Show database variables and other stuff
-Login to mysql
-```
-mysql -uroot -h127.0.0.1 -proot
-```
-### 6.1. check status:
+## 5. Show database variables and other stuff
+### 5.1. check status:
 ```
 status;
 ```
-### 6.2. Show status of InnoDB Storage Engine:
+### 5.2. Show status of InnoDB Storage Engine:
 ```
 show engine innodb status;
 ```
-### 6.3. Show all session variables:
+### 5.3. Show all session variables:
 ```
 show variables;
 ```
@@ -151,29 +137,61 @@ show variables like 'innodb_flush_log_at_trx_commit';
 show variables like 'transaction_isolation';
 ```
 How to set / change variables ? \
-Set transaction isolation from default "REPEATABLE-READ" into "READ-COMMITTED" (use "persist" for making the change persisted (or no change after restart).
+Set transaction isolation from default "REPEATABLE-READ" into "READ-COMMITTED".
 ```
 set persist transaction_isolation='READ-COMMITTED';
+restart;
 show variables like 'transaction_isolation';
 ```
-### 6.4. Query mysql tablespaces and datafiles
+### 5.4. Query mysql tablespaces and datafiles
 ```
 select * from information_schema.innodb_tablespaces;
 SELECT FILE_ID, FILE_NAME, FILE_TYPE, TABLESPACE_NAME, FREE_EXTENTS, TOTAL_EXTENTS,  EXTENT_SIZE, INITIAL_SIZE, MAXIMUM_SIZE, AUTOEXTEND_SIZE, DATA_FREE, STATUS ENGINE FROM INFORMATION_SCHEMA.FILES;
 ```
-### 6.5. Sys.Diagnostics
+### 5.5. Sys.Diagnostics
 Creates a report of the current server status for diagnostic purposes. \
 Create a diagnostics report that starts an iteration every 30 seconds and runs for at most 120 seconds using the current Performance Schema settings.
 ```
 tee diag.out;
 CALL sys.diagnostics(120, 30, 'current');
 notee;
-exit;
 ```
 View file diag.out:
 ```
-cat diag.out
+\! cat diag.out
 ```
+## 6. Password Policy
+Show default authentication plugin used by the instance:
+```
+show variables like 'default_authentication_plugin';  
+```
+Some authentication plugins store account credentials internally to MySQL, in the mysql.user system table: Caching_sha2_password, mysql_native_password, and sha256_password. Caching_sha2_password is default in MySQL 8.0.
+### 6.1. Password Expiration Policy
+MySQL enables database administrators to expire account passwords manually, and to establish a policy for automatic password expiration. Expiration policy can be established globally, and individual accounts can be set to either defer to the global policy or override the global policy with specific per-account behavior. 
+```
+create user apps@'%' identified by 'apps';
+alter user apps@'%' password expire;
+select * from mysql.user where user='apps' \G  
+exit;
+``
+Exit and try to login using apps@'%'
+```
+mysql -uapps -h127.0.0.1 -papps
+```
+If the password is expired (whether manually or automatically), the server either disconnects the client or restricts the operations permitted to it.
+```
+select 1;
+  
+set password='apps2';
+select 1;
+  
+exit;
+```
+
+
+  
+  
+  
 ## 7. Using Index and Histogram
 Login to mysql
 ```
