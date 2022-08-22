@@ -1,4 +1,4 @@
-# MySQL Basic Installation
+# MySQL Enterprise Server Installation
 
 ## 1. Install MySQL Enterprise Server, MySQL Enterprise Shell and MySQL Enterprise Router using TAR
 Install using TAR is flexible and stright forward. However, we have to ensure all pre-requisites are installed on. new server\
@@ -173,7 +173,7 @@ create user apps@'%' identified by 'apps';
 alter user apps@'%' password expire;
 select * from mysql.user where user='apps' \G  
 exit;
-``
+```
 Exit and try to login using apps@'%'
 ```
 mysql -uapps -h127.0.0.1 -papps
@@ -187,69 +187,60 @@ select 1;
   
 exit;
 ```
-
-
-  
-  
-  
-## 7. Using Index and Histogram
-Login to mysql
+login using root@'localhost'
 ```
 mysql -uroot -h127.0.0.1 -proot
 ```
-Run sql script to install database schema and insert data
+To establish a global policy, default_password_lifetime can also be set and persisted at runtime:
 ```
-source /home/opc/script/world_x.sql;
-show databases;
-use world_x;
+SET PERSIST default_password_lifetime = 180;
+SET PERSIST default_password_lifetime = 0;  
 ```
-Column ID is the primary key, therefore the following query will be fast because it does index range scan
+Account based password policy:
 ```
-explain format=tree select * from city where id>4055;
+alter user apps@'%' password expire interval 90 day;
+
+alter user apps@'%' password expire never;
+  
+alter user apps@'%' password expire default;
 ```
-Compare to this one which is not using index (look at the number of rows examined)
+### 6.2. Password Reuse Policy
+MySQL enables restrictions to be placed on reuse of previous passwords. Reuse restrictions can be established based on number of password changes, time elapsed, or both. 
 ```
-explain format=tree select * from city where district='Florida';
+SET PERSIST password_history = 6;
+SET PERSIST password_reuse_interval = 365;  
 ```
-If creating index against column district is not an option, try to use histogram to reduce number of rows examined
+Account based password reuse policy:
 ```
-analyze table city update histogram on district with 1000 buckets;
-explain format=tree select * from city where district='Florida';
+alter user apps@'%' password HISTORY 5;
+
+alter user apps@'%' password REUSE INTERVAL 365 DAY;
+  
+alter user apps@'%' password HISTORY default;
+  
+alter user apps@'%' password REUSE INTERVAL default;
 ```
-## 8. Provision new database using Clone Plugin
-Install clone plugin
+### 6.3. Dual Password
+user accounts are permitted to have dual passwords, designated as primary and secondary passwords. Dual-password capability makes it possible to seamlessly perform credential changes in scenarios like this: A system has a large number of MySQL servers, possibly involving replication. Multiple applications connect to different MySQL servers. Periodic credential changes must be made to the account or accounts used by the applications to connect to the servers.
 ```
-install plugin clone soname 'mysql_clone.so';
-create user clone@'%' identified by 'clone';
-grant backup_admin on *.* to clone@'%';
-show databases;
-exit;
+alter user apps@'%' identified by 'apps' retain current password;  
 ```
-Create, start database, and login to instance 3307
+Exit and do login test using apps (new password) and apps2 (old password)
 ```
-mysqld --defaults-file=3307.cnf --initialize-insecure
-mysqld_safe --defaults-file=3307.cnf &
-mysql -uroot -h127.0.0.1 -P3307
+mysql -uapps -h127.0.0.1 -papps2 -e "show databases"
+mysql -uapps -h127.0.0.1 -papps -e "show databases"
 ```
-Install clone plugin into instance 3307 and start cloning procedure
+Login as root and discard old password
 ```
-show databases;
-select * from world_x.city;
-install plugin clone soname 'mysql_clone.so';
-set global clone_valid_donor_list='127.0.0.1:3306';
-clone instance from clone@'127.0.0.1':3306 identified by 'clone';
-show databases;
-show databases;
-select * from world_x.city;
-```
-shutdown and clean-up 3307
-```
-shutdown;
-exit;
-rm -Rf /home/opc/data/3307/*
+mysql -uroot -h127.0.0.1 -proot -e "alter user apps@'%' discard old password"
+  
+mysql -uapps -h127.0.0.1 -papps2 -e "show databases"
+mysql -uapps -h127.0.0.1 -papps -e "show databases"
 ```
 
 
+  
+  
 
 
 
