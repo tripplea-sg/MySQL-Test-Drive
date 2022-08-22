@@ -1,14 +1,19 @@
 # MySQL Basic Installation
 
-## 1. Install MySQL Binaries using TAR
+## 1. Install MySQL Enterprise Server, MySQL Enterprise Shell and MySQL Enterprise Router using TAR
 Install using TAR is flexible and stright forward. However, we have to ensure all pre-requisites are installed on. new server\
 For new server, RPM or YUM based installation can be use to validate any missing OS dependencies.
 ```
-cd /home/opc/bin/tar
-tar -zxvf mysql-commercial-8.0.21-el7-x86_64.tar.gz
-tar -zxvf mysql-shell-commercial-8.0.21-linux-glibc2.12-x86-64bit.tar.gz
-tar -zxvf mysql-router-commercial-8.0.21-el7-x86_64.tar.gz
-cd /home/opc/config
+cd /home/opc/software
+
+unzip MySQL-Server-8.0.30.zip
+tar -zxvf mysql-commercial-8.0.30-el7-x86_64.tar.gz
+
+unzip MySQL-Shell-8.0.30.zip
+sudo rpm -ivh mysql-shell-commercial-8.0.30-1.1.el7.x86_64.rpm
+
+unzip MySQL-Router-8.0.30.zip
+tar -zxvf mysql-router-commercial-8.0.30-el7-x86_64.tar.gz
 ```
 
 ## 2. Create database with random root password (using "--initialize") and start database
