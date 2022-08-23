@@ -1,35 +1,93 @@
 # MySQL Enterprise Firewall
-## 1. Full database backup:
+## 1. Install Firewall
 ```
-mkdir -p /home/opc/config/backup
-mysqlbackup --user=root --password=root --host=127.0.0.1 --port=3306 --backup-dir=/home/opc/config/backup --with-timestamp backup-and-apply-log
+mysql -uroot -h127.0.0.1 -proot < /home/opc/software/mysql-commercial-8.0.30-el7-x86_64/share/linux_install_firewall.sql 
+
+mysql -uroot -h127.0.0.1 -proot
+
+show variables like '%firewall%';
+
+show plugins;
+
+select * from mysql.firewall_users;
+
+		lists names and operational modes of registered firewall account profiles
+
+select * from mysql.firewall_whitelist;
+
+		lists allowlist rules of registered firewall account profiles.
+
+select * from information_schema.mysql_firewall_whitelist;
+
+		a view into the in-memory data cache for MySQL Enterprise Firewall
+
+select * from mysql.firewall_groups;
+
+		lists names and operational modes of registered firewall group profiles
+
+select * from mysql.firewall_group_allowlist;
+
+		lists allowlist rules of registered firewall group profiles
+
+select * from mysql.firewall_membership;
+
+    lists the members (accounts) of registered firewall group profile
+
+show global status like '%firewall%';
+
+		Firewall_access_denied: The number of statements rejected 
+		Firewall_access_granted: The number of statements accepted
+		Firewall_access_suspicious: The number of statements logged
+		Firewall_cached_entries: The number of statements recorded, including duplicates. 
 ```
-## 2. Make data change after backup
+## 2. Set important privileges
 ```
-mysql -uroot -h127.0.0.1 -proot -e "create database temp; create table temp.test (i int); insert into temp.test values (1);"
+grant FIREWALL_EXEMPT on *.* to root@'localhost';
+grant FIREWALL_ADMIN on *.* to root@'localhost';
 ```
-## 3. Taking incremmental backup
+## 3. Train Firewall
+As root:
 ```
-mysqlbackup --user=root --password=root --host=127.0.0.1 --port=3306 --incremental --incremental-backup-dir=/home/opc/config/backup --with-timestamp --incremental-base=history:last_backup backup
+create user demo@'%' identified by 'demo';
+grant all privileges on world_x.* to demo@'%';
+call mysql.sp_set_firewall_group_mode('group1','RECORDING');
+select * from mysql.firewall_groups;
+call mysql.sp_firewall_group_enlist('group1','demo@%');
+select * from mysql.firewall_membership;
+exit;
 ```
-## 4. Destroy database 3306
+As demo:
 ```
-mysqladmin -uroot -h127.0.0.1 -proot shutdown
-rm -Rf /home/opc/data/3306/*
+mysql -udemo -pdemo -h127.0.0.1 
+
+show databases;
+use world_x;
+show tables;
+select * from city;
+exit;
 ```
-## 5. Restore database 3306
+As root:
 ```
-ls /home/opc/config/backup/
-mysqlbackup --datadir=/home/opc/data/3306 --backup-dir=/home/opc/config/backup/<sub-directory-full-backup> copy-back-and-apply-log
-mysqlbackup --datadir=/home/opc/data/3306 --incremental-backup-dir=/home/opc/config/backup/<sub-directory-incremental-backup> --incremental copy-back-and-apply-log
-mysqld_safe --defaults-file=/home/opc/config/3306.cnf &
+mysql -uroot -proot -h127.0.0.1
+
+SELECT MODE FROM performance_schema.firewall_groups WHERE NAME = 'group1';
+SELECT * FROM performance_schema.firewall_membership WHERE GROUP_ID = 'group1' ORDER BY MEMBER_ID;
+SELECT RULE FROM performance_schema.firewall_group_allowlist WHERE NAME = 'group1';
 ```
-## 6. Check the data
+## 4. Testing the Firewall
+AS ROOT, turn on protecting mode
 ```
-mysql -uroot -h127.0.0.1 -proot -e "show databases"
-mysql -uroot -h127.0.0.1 -proot -e "select * from temp.test"
+call mysql.sp_set_firewall_group_mode('group1','PROTECTING');
+grant firewall_user on *.* to demo@'%';
+exit
 ```
-## 7. Shutdown database
+As demo:
 ```
-mysqladmin -uroot -h127.0.0.1 -proot shutdown
+mysql -udemo -pdemo -h127.0.0.1 
+
+show databases;
+use world_x;
+show tables;
+select * from city;
+select * from city where id=1;
 ```
