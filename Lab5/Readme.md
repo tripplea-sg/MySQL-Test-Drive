@@ -51,7 +51,7 @@ select mask_inner(name, 1,1), countrycode from world_x.city;
 ## 5. Use Query Rewrite plugin
 Install plugin
 ```
-/home/opc/software/mysql-commercial-8.0.30-el7-x86_64/share/install_rewriter.sql
+source /home/opc/software/mysql-commercial-8.0.30-el7-x86_64/share/install_rewriter.sql
 ```
 Register query
 ```
