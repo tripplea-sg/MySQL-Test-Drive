@@ -1,9 +1,18 @@
-# MySQL Replicasets
-## 1. Prepare the instance
+# Encryption and Data Masking
+## 1. Install Enterprise Encryption
+As root:
 ```
-rm -Rf /home/opc/data/3306/*
-rm -Rf /home/opc/data/3307/*
-rm -Rf /home/opc/data/3308/*
+mysql -uroot -proot -h127.0.0.1
+
+CREATE FUNCTION asymmetric_decrypt RETURNS STRING SONAME 'openssl_udf.so';
+CREATE FUNCTION asymmetric_derive RETURNS STRING SONAME 'openssl_udf.so';
+CREATE FUNCTION asymmetric_encrypt RETURNS STRING SONAME 'openssl_udf.so';
+CREATE FUNCTION asymmetric_sign RETURNS STRING SONAME 'openssl_udf.so';
+CREATE FUNCTION asymmetric_verify RETURNS INTEGER SONAME 'openssl_udf.so';
+CREATE FUNCTION create_asymmetric_priv_key RETURNS STRING SONAME 'openssl_udf.so';
+CREATE FUNCTION create_asymmetric_pub_key RETURNS STRING SONAME 'openssl_udf.so';
+CREATE FUNCTION create_dh_parameters RETURNS STRING SONAME 'openssl_udf.so';
+CREATE FUNCTION create_digest RETURNS STRING SONAME 'openssl_udf.so';
 ```
 ## 2. Create database instance 3306 and 3307
 ```
