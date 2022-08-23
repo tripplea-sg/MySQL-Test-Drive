@@ -60,6 +60,7 @@ mysql -uroot -proot -h127.0.0.1 -e "set persist audit_log_rotate_on_size=1048576
 Manual audit log rotation
 ```
 mv /home/opc/db/3306/data/audit.log /home/opc/db/3306/data/audit.log.bak
+mysql -uroot -h127.0.0.1 -proot -e "set global audit_log_rotate_on_size=0"
 mysql -uroot -h127.0.0.1 -proot -e "set global audit_log_flush=ON;"
 ls /home/opc/db/3306/data/audit.*
 ```
