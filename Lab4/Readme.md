@@ -1,4 +1,4 @@
-# MySQL Enterprise Backup
+# MySQL Enterprise Firewall
 ## 1. Full database backup:
 ```
 mkdir -p /home/opc/config/backup
