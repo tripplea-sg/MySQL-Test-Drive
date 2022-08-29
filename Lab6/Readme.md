@@ -127,6 +127,21 @@ mysql -ugradmin -pgrpass -h127.0.0.1 -P6447 -e "select @@port";
 ## 4. Online Maintenance
 Shutdown instance 3306
 ```
-
+mysqladmin -uroot -proot -h127.0.0.1 -P3306 shutdown
 ```
+Open using vi /home/opc/db/3306/ and change parameters as follow:
+```
+innodb_buffer_pool_size=1G
+innodb_buffer_pool_instances=1
+```
+Save and exist, start instance 3306
+```
+mysqld_safe --defaults-file=/home/opc/db/3306/my.cnf &
+```
+Check cluster status
+```
+mysqlsh gradmin:grpass@localhost:3306 -- cluster status
+```
+
+
 
