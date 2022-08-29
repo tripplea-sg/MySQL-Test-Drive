@@ -22,7 +22,7 @@ ls /home/opc/db/backup
 ### 4. Restore to new instance
 Create directory
 ```
-mkdir -p /home/opc/db/5305/data /home/opc/db/5306/innodb_data_home_dir /home/opc/db/5306/innodb_undo_directory /home/opc/db/5306/innodb_temp_tablespace_dir /home/opc/db/5306/innodb_temp_data_file_path /home/opc/db/5306/innodb_log_group_home_dir /home/opc/db/5306/log_bin
+mkdir -p /home/opc/db/5306/data /home/opc/db/5306/innodb_data_home_dir /home/opc/db/5306/innodb_undo_directory /home/opc/db/5306/innodb_temp_tablespace_dir /home/opc/db/5306/innodb_temp_data_file_path /home/opc/db/5306/innodb_log_group_home_dir /home/opc/db/5306/log_bin
 ```
 Create option file for this instance (vi /home/opc/db/5306/my.cnf)
 ```
@@ -71,7 +71,67 @@ mysql -uroot -proot -h127.0.0.1 -P5306 -e "CHANGE REPLICATION SOURCE TO SOURCE_H
 
 mysql -uroot -proot -h127.0.0.1 -P5306 -e "set persist super_read_only=on;"
 ```
+### 6. Options using MySQL Enterprise Backup
+Encrypted and compressed full backup
+```
+openssl rand -hex 32 > /home/opc/db/backup/meb-key
 
+rm -Rf /var/tmp/backup/*
 
+mysqlbackup --user=mysqlbackup --password=password --host=127.0.0.1 --port=3308 --backup-image=/home/opc/db/backup/ic-backup.enc --encrypt --key-file=/home/opc/db/backup/meb-key  --backup-dir=/var/tmp/backup --read-threads=1 --process-threads=1 --write-threads=1  --compress --compress-level=5 --encrypt-password=password backup-to-image
+```
+Incremental Backup
+```
+mysql -uroot -proot -h127.0.0.1 -P3307 -e "create database dev"
 
+rm -Rf /var/tmp/backup/*
 
+mysqlbackup --user=mysqlbackup --password=password --host=127.0.0.1 --port=3308 --backup-image=/home/opc/db/backup/ic-backup-inc.enc --encrypt --key-file=/home/opc/db/backup/meb-key  --backup-dir=/var/tmp/backup --incremental --incremental-base=history:last_backup --encrypt-password=password backup-to-image
+```
+Create directory for restoration
+```
+mkdir -p /home/opc/db/5307/data /home/opc/db/5307/innodb_data_home_dir /home/opc/db/5307/innodb_undo_directory /home/opc/db/5307/innodb_temp_tablespace_dir /home/opc/db/5307/innodb_temp_data_file_path /home/opc/db/5307/innodb_log_group_home_dir /home/opc/db/5307/log_bin
+```
+Create option file for this instance (vi /home/opc/db/5307/my.cnf)
+```
+[mysqld]
+datadir=/home/opc/db/5307/data
+binlog-format=ROW
+log-bin=/home/opc/db/5307/log_bin/bin
+innodb_data_home_dir=/home/opc/db/5307/innodb_data_home_dir
+innodb_undo_directory=/home/opc/db/5307/innodb_undo_directory
+innodb_temp_tablespaces_dir=/home/opc/db/5307/innodb_temp_tablespace_dir 
+innodb_temp_data_file_path=/home/opc/db/5307/innodb_temp_data_file_path/ibtmp1:12M:autoextend
+innodb_log_group_home_dir=/home/opc/db/5307/innodb_log_group_home_dir
+port=5307
+server_id=200
+socket=/home/opc/db/5307/data/mysqld.sock
+log-error=/home/opc/db/5307/data/mysqld.log
+enforce_gtid_consistency = ON
+gtid_mode = ON
+log_slave_updates = ON
+innodb_buffer_pool_size=1G
+innodb_buffer_pool_instances=1
+innodb_log_file_size=1G
+innodb_log_files_in_group=3
+innodb_flush_log_at_trx_commit=1
+```
+Restore backup to instance 5307
+```
+rm -Rf /var/tmp/backup/*
+
+mysqlbackup --defaults-file=/home/opc/db/5307/my.cnf -uroot --backup-image=/home/opc/db/backup/ic-backup.enc --backup-dir=/var/tmp/backup --datadir=/home/opc/db/5307/data --uncompress --decrypt --key-file=/home/opc/db/backup/meb-key --encrypt-password=password copy-back-and-apply-log
+
+rm -Rf /var/tmp/backup/*
+
+mysqlbackup --defaults-file=/home/opc/db/5307/my.cnf -uroot --backup-image=/home/opc/db/backup/ic-backup-inc.enc --backup-dir=/var/tmp/backup --datadir=/home/opc/db/5307/data --decrypt --key-file=/home/opc/db/backup/meb-key --encrypt-password=password copy-back-and-apply-log
+
+```
+Start instance 5307
+```
+mysqld_safe --defaults-file=/home/opc/db/5307/my.cnf &
+
+mysql -uroot -proot -h127.0.0.1 -P5307 --skip-binary-as-hex -e "show databases"
+
+mysql -uroot -proot -h127.0.0.1 -P5307 --skip-binary-as-hex -e "select * from world_x.city_info_encrypted;"
+```
