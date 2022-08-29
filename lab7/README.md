@@ -19,4 +19,49 @@ mysqlbackup --user=mysqlbackup --password=password --host=127.0.0.1 --port=3306 
 
 ls /home/opc/db/backup
 ```
+### 4. Restore to new instance
+Create directory
+```
+mkdir -p /home/opc/db/5305/data /home/opc/db/5306/innodb_data_home_dir /home/opc/db/5306/innodb_undo_directory /home/opc/db/5306/innodb_temp_tablespace_dir /home/opc/db/5306/innodb_temp_data_file_path /home/opc/db/5306/innodb_log_group_home_dir /home/opc/db/5306/log_bin
+```
+Create option file for this instance (vi /home/opc/db/5306/my.cnf)
+```
+[mysqld]
+datadir=/home/opc/db/5306/data
+binlog-format=ROW
+log-bin=/home/opc/db/5306/log_bin/bin
+innodb_data_home_dir=/home/opc/db/5306/innodb_data_home_dir
+innodb_undo_directory=/home/opc/db/5306/innodb_undo_directory
+innodb_temp_tablespaces_dir=/home/opc/db/5306/innodb_temp_tablespace_dir 
+innodb_temp_data_file_path=/home/opc/db/5306/innodb_temp_data_file_path/ibtmp1:12M:autoextend
+innodb_log_group_home_dir=/home/opc/db/5306/innodb_log_group_home_dir
+port=5306
+server_id=100
+socket=/home/opc/db/5306/data/mysqld.sock
+log-error=/home/opc/db/5306/data/mysqld.log
+enforce_gtid_consistency = ON
+gtid_mode = ON
+log_slave_updates = ON
+innodb_buffer_pool_size=1G
+innodb_buffer_pool_instances=1
+innodb_log_file_size=1G
+innodb_log_files_in_group=3
+innodb_flush_log_at_trx_commit=1
+```
+Restore backup to instance 5306
+```
+mysqlbackup --defaults-file=/home/opc/db/5306/my.cnf --backup-dir='/home/opc/db/backup/2022-08-29_18-45-16' --encrypt-password=password copy-back-and-apply-log
+
+cp /home/opc/db/backup/2022-08-29_18-45-16/meta/keyring_kef /home/opc/db/5306/data/component_keyring_encrypted_file
+```
+Restart instance 5306
+```
+mysqld_safe --defaults-file=/home/opc/db/5306/my.cnf &
+
+mysql -uroot -proot -h127.0.0.1 -P5306 --skip-binary-as-hex -e "select * from world_x.city_info_encrypted;"
+```
+
+
+
+
 
