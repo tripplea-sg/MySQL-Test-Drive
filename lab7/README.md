@@ -68,6 +68,8 @@ mysql -ugradmin -pgrpass -h127.0.0.1 -P6446 -e "create user repl@'%' identified 
 connect to INSTANCE 5306 and configure replication channel
 ```
 mysql -uroot -proot -h127.0.0.1 -P5306 -e "CHANGE REPLICATION SOURCE TO SOURCE_HOST='127.0.0.1', SOURCE_USER='repl', SOURCE_PASSWORD='repl', SOURCE_PORT=6447, SOURCE_AUTO_POSITION = 1, master_ssl=1, get_master_public_key=1 for channel 'channel1'; start replica for channel 'channel1'; show replica status for channel 'channel1' \G"
+
+mysql -uroot -proot -h127.0.0.1 -P5306 -e "set persist super_read_only=on;"
 ```
 
 
