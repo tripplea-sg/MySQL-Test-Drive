@@ -1,72 +1,132 @@
-# MySQL InnoDB Cluster
-Shutdown any running databases (if applicable):
+# MySQL InnoDB Cluster Deployment
+
+## 1. Create databases (2nd and 3rd nodes)
+Prepare directories
 ```
-mysqladmin -uroot -h127.0.0.1 -P3306 shutdown
-mysqladmin -uroot -h127.0.0.1 -P3307 shutdown
-mysqladmin -uroot -h127.0.0.1 -P3308 shutdown
+mkdir -p /home/opc/db/3307/data /home/opc/db/3307/innodb_data_home_dir /home/opc/db/3307/innodb_undo_directory /home/opc/db/3307/innodb_temp_tablespace_dir /home/opc/db/3307/innodb_temp_data_file_path /home/opc/db/3307/innodb_log_group_home_dir /home/opc/db/3307/log_bin
+
+mkdir -p /home/opc/db/3308/data /home/opc/db/3308/innodb_data_home_dir /home/opc/db/3308/innodb_undo_directory /home/opc/db/3308/innodb_temp_tablespace_dir /home/opc/db/3308/innodb_temp_data_file_path /home/opc/db/3308/innodb_log_group_home_dir /home/opc/db/3308/log_bin
 ```
-## 1. Prepare the instance
+Create option file / configuration file for the database with the following content (command: vi /home/opc/db/3307/my.cnf)
 ```
-rm -Rf /home/opc/data/3306/*
-rm -Rf /home/opc/data/3307/*
-rm -Rf /home/opc/data/3308/*
+[mysqld]
+datadir=/home/opc/db/3307/data
+binlog-format=ROW
+log-bin=/home/opc/db/3307/log_bin/bin
+innodb_data_home_dir=/home/opc/db/3307/innodb_data_home_dir
+innodb_undo_directory=/home/opc/db/3307/innodb_undo_directory
+innodb_temp_tablespaces_dir=/home/opc/db/3307/innodb_temp_tablespace_dir 
+innodb_temp_data_file_path=/home/opc/db/3307/innodb_temp_data_file_path/ibtmp1:12M:autoextend
+innodb_log_group_home_dir=/home/opc/db/3307/innodb_log_group_home_dir
+port=3307
+server_id=20
+socket=/home/opc/db/3307/data/mysqld.sock
+log-error=/home/opc/db/3307/data/mysqld.log
+enforce_gtid_consistency = ON
+gtid_mode = ON
+log_slave_updates = ON
+innodb_buffer_pool_size=1G
+innodb_buffer_pool_instances=1
+innodb_log_file_size=1G
+innodb_log_files_in_group=3
+innodb_flush_log_at_trx_commit=1
 ```
-## 2. Create database instance 3306, 3307, and 3308
+Create option file / configuration file for the database with the following content (command: vi /home/opc/db/3308/my.cnf)
 ```
-cd /home/opc/config
-mysqld --defaults-file=3306.cnf --initialize-insecure
-mysqld --defaults-file=3307.cnf --initialize-insecure
-mysqld --defaults-file=3308.cnf --initialize-insecure
-mysqld_safe --defaults-file=3306.cnf &
-mysqld_safe --defaults-file=3307.cnf &
-mysqld_safe --defaults-file=3308.cnf &
+[mysqld]
+datadir=/home/opc/db/3308/data
+binlog-format=ROW
+log-bin=/home/opc/db/3308/log_bin/bin
+innodb_data_home_dir=/home/opc/db/3308/innodb_data_home_dir
+innodb_undo_directory=/home/opc/db/3308/innodb_undo_directory
+innodb_temp_tablespaces_dir=/home/opc/db/3308/innodb_temp_tablespace_dir 
+innodb_temp_data_file_path=/home/opc/db/3308/innodb_temp_data_file_path/ibtmp1:12M:autoextend
+innodb_log_group_home_dir=/home/opc/db/3308/innodb_log_group_home_dir
+port=3308
+server_id=30
+socket=/home/opc/db/3308/data/mysqld.sock
+log-error=/home/opc/db/3308/data/mysqld.log
+enforce_gtid_consistency = ON
+gtid_mode = ON
+log_slave_updates = ON
+innodb_buffer_pool_size=1G
+innodb_buffer_pool_instances=1
+innodb_log_file_size=1G
+innodb_log_files_in_group=3
+innodb_flush_log_at_trx_commit=1
 ```
-## 3. Configure Instance 3306, 3307, and 3308
+Create database with empty root password
 ```
-mysqlsh -- dba configure-instance { --host=127.0.0.1 --port=3306 --user=root } --clusterAdmin=gradmin --clusterAdminPassword=grpass --interactive=false --restart=true
-mysqlsh -- dba configure-instance { --host=127.0.0.1 --port=3307 --user=root } --clusterAdmin=gradmin --clusterAdminPassword=grpass --interactive=false --restart=true
-mysqlsh -- dba configure-instance { --host=127.0.0.1 --port=3308 --user=root } --clusterAdmin=gradmin --clusterAdminPassword=grpass --interactive=false --restart=true
+mysqld --defaults-file=/home/opc/db/3307/my.cnf --initialize-insecure
+mysqld --defaults-file=/home/opc/db/3308/my.cnf --initialize-insecure
 ```
-## 4. Create Cluster
+Start database
 ```
-mysqlsh gradmin:grpass@localhost:3306 -- dba createCluster 'myCluster'
-mysqlsh gradmin:grpass@localhost:3306 -- cluster status
+mysqld_safe --defaults-file=/home/opc/db/3307/my.cnf &
+mysqld_safe --defaults-file=/home/opc/db/3308/my.cnf &
 ```
-## 5. Add instance 3307 and 3308 to cluster
+## 2. Create InnoDB Cluster:
+Install MySQL Router
+```
+cd /home/opc/software
+unzip MySQL-Shell-8.0.30.zip
+sudo  rpm -ivh mysql-shell-commercial-8.0.30-1.1.el7.x86_64.rpm
+```
+Run configure Instance on all 3 databases
+```
+mysqlsh -- dba configure-instance { --host=127.0.0.1 --port=3306 --user=root --instance-password=root } --clusterAdmin=gradmin --clusterAdminPassword='grpass' --interactive=false --restart=true
+
+mysqlsh -- dba configure-instance { --host=127.0.0.1 --port=3307 --user=root } --clusterAdmin=gradmin --clusterAdminPassword='grpass' --interactive=false --restart=true
+
+mysqlsh -- dba configure-instance { --host=127.0.0.1 --port=3308 --user=root } --clusterAdmin=gradmin --clusterAdminPassword='grpass' --interactive=false --restart=true
+```
+Create cluster on 3306
+```
+mysqlsh gradmin:grpass@localhost:3306 -- dba createCluster mycluster --consistency=BEFORE_ON_PRIMARY_FAILOVER
+
+mysql -uroot -h127.0.0.1 -proot -e "alter table world_x.city_info_encrypted add constraint pk_1 primary key (id)"
+
+mysqlsh gradmin:grpass@localhost:3306 -- dba createCluster mycluster --consistency=BEFORE_ON_PRIMARY_FAILOVER
+```
+Add instance 3307 into the cluster using "clone"
 ```
 mysqlsh gradmin:grpass@localhost:3306 -- cluster add-instance gradmin:grpass@localhost:3307 --recoveryMethod=clone
+```
+Add instance 3308 into the cluster using "clone"
+```
 mysqlsh gradmin:grpass@localhost:3306 -- cluster add-instance gradmin:grpass@localhost:3308 --recoveryMethod=clone
 ```
-## 6. Setup Router
+Check cluster status
 ```
-mysqlrouter --bootstrap gradmin:grpass@localhost:3306 --directory router 
+mysqlsh gradmin:grpass@localhost:3306 -- cluster status
+```
+## 3. Setup MySQL Router
+Extract and install router
+```
+unzip MySQL-Router-8.0.30.zip
+tar -zxvf mysql-router-commercial-8.0.30-el7-x86_64.tar.gz
+```
+Setup and run router
+```
+mysql-router-commercial-8.0.30-el7-x86_64/bin/mysqlrouter --bootstrap gradmin:grpass@localhost:3306 --directory router --account myrouter --account-create always --force
+
 router/start.sh
+
+ps -ef | grep mysqlrouter
 ```
-## 7.Prepare database users for application to connect
+Connect to PRIMARY from MySQL Router
 ```
-mysql -uroot -h127.0.0.1 -e "create user appUser@'%' identified with mysql_native_password by 'appUser'; grant all privileges on *.* to appUser@'%';"
-mysql -uroot -h127.0.0.1 -e "create user root@'%' identified with mysql_native_password by ''; grant all privileges on *.* to root@'%' with grant option;"
+mysql -ugradmin -pgrpass -h127.0.0.1 -P6446 -e "select @@port";
 ```
-## 8. Disable firewall and launch application
+Connect to SECONDARY from MySQL Router
 ```
-sudo systemctl stop firewalld
+mysql -ugradmin -pgrpass -h127.0.0.1 -P6447 -e "select @@port";
+
+mysql -ugradmin -pgrpass -h127.0.0.1 -P6447 -e "select @@port";
 ```
-Launch web browser and go to URL "http://your-server-ip/demo"
-## 9. Switch Primary from 3306 to 3307
-```
-mysqlsh gradmin:grpass@localhost:3306 -- cluster setPrimaryInstance gradmin:grpass@localhost:3307
-```
-## 10. If primary node is crashed
-```
-ps -ef | grep mysqld | grep 3307 | grep -v mysqld_safe
-```
-Get the PID and kill that process
-```
-kill -9 <PID>
+## 4. Online Maintenance
+Shutdown instance 3306
 ```
 
-
-
-
-
+```
 
