@@ -11,6 +11,7 @@ Introductory session to test drive the powerful MySQL database
 | [Lab 4](https://github.com/tripplea-sg/MySQL-Test-Drive/tree/master/Lab4) | MySQL Enterprise Firewall |
 | [Lab 5](https://github.com/tripplea-sg/MySQL-Test-Drive/tree/master/Lab5) | Encryption and Data Masking |
 | [Lab 6](https://github.com/tripplea-sg/MySQL-Test-Drive/blob/master/Lab6) | InnoDB Cluster |
+| [Lab 7](https://github.com/tripplea-sg/MySQL-Test-Drive/blob/master/Lab6) | MySQL Enterprise Backup |
 
 
 
