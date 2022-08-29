@@ -54,13 +54,21 @@ mysqlbackup --defaults-file=/home/opc/db/5306/my.cnf --backup-dir='/home/opc/db/
 
 cp /home/opc/db/backup/2022-08-29_18-45-16/meta/keyring_kef /home/opc/db/5306/data/component_keyring_encrypted_file
 ```
-Restart instance 5306
+Start instance 5306
 ```
 mysqld_safe --defaults-file=/home/opc/db/5306/my.cnf &
 
 mysql -uroot -proot -h127.0.0.1 -P5306 --skip-binary-as-hex -e "select * from world_x.city_info_encrypted;"
 ```
-
+### 5. Build Replication from InnoDB Cluster to standalone
+Connect to PRIMARY instance through MySQL Router and create replication user
+```
+mysql -ugradmin -pgrpass -h127.0.0.1 -P6446 -e "create user repl@'%' identified by 'repl'; grant replication slave on *.* to repl@'%';"
+```
+connect to INSTANCE 5306 and configure replication channel
+```
+mysql -uroot -proot -h127.0.0.1 -P5306 -e "CHANGE REPLICATION SOURCE TO SOURCE_HOST='127.0.0.1', SOURCE_USER='repl', SOURCE_PASSWORD='repl', SOURCE_PORT=6447, SOURCE_AUTO_POSITION = 1, master_ssl=1, get_master_public_key=1 for channel 'channel1'; start replica for channel 'channel1'; show replica status for channel 'channel1' \G"
+```
 
 
 
