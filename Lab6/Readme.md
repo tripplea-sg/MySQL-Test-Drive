@@ -66,7 +66,6 @@ mysqld_safe --defaults-file=/home/opc/db/3307/my.cnf &
 mysqld_safe --defaults-file=/home/opc/db/3308/my.cnf &
 ```
 ## 2. Create InnoDB Cluster:
-```
 Run configure Instance on all 3 databases
 ```
 mysqlsh -- dba configure-instance { --host=127.0.0.1 --port=3306 --user=root --instance-password=root } --clusterAdmin=gradmin --clusterAdminPassword='grpass' --interactive=false --restart=true
