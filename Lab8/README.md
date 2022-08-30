@@ -46,5 +46,11 @@ mysqlsh gradmin:grpass@localhost:3307 -- cluster status
 ```
 Fix the router
 ```
+/home/opc/software/router/stop.sh
+
+ps -ef | grep mysqlrouter
+
+rm -Rf /home/opc/software/router
+
 
 ```
