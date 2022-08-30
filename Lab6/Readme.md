@@ -122,7 +122,7 @@ Shutdown instance 3306
 ```
 mysqladmin -uroot -proot -h127.0.0.1 -P3306 shutdown
 ```
-Open using vi /home/opc/db/3306/ and change parameters as follow:
+Open using vi /home/opc/db/3306/my.cnf and change parameters as follow:
 ```
 innodb_buffer_pool_size=1G
 innodb_buffer_pool_instances=1
