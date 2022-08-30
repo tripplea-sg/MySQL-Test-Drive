@@ -141,6 +141,8 @@ mysqld_safe --defaults-file=/home/opc/db/3306/my.cnf &
 Check cluster status
 ```
 mysqlsh gradmin:grpass@localhost:3306 -- cluster status
+
+mysqlsh gradmin:grpass@localhost:3306 -- cluster status --extended=3
 ```
 
 
