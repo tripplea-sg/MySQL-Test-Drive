@@ -66,11 +66,6 @@ mysqld_safe --defaults-file=/home/opc/db/3307/my.cnf &
 mysqld_safe --defaults-file=/home/opc/db/3308/my.cnf &
 ```
 ## 2. Create InnoDB Cluster:
-Install MySQL Router
-```
-cd /home/opc/software
-unzip MySQL-Shell-8.0.30.zip
-sudo  rpm -ivh mysql-shell-commercial-8.0.30-1.1.el7.x86_64.rpm
 ```
 Run configure Instance on all 3 databases
 ```
