@@ -96,6 +96,9 @@ mysqlsh gradmin:grpass@localhost:3306 -- cluster status
 ```
 ## 3. Setup MySQL Router
 ```
+unzip MySQL-Router-8.0.30.zip
+tar -zxvf mysql-router-commercial-8.0.30-el7-x86_64.tar.gz
+```
 Setup and run router
 ```
 mysql-router-commercial-8.0.30-el7-x86_64/bin/mysqlrouter --bootstrap gradmin:grpass@localhost:3306 --directory router --account myrouter --account-create always --force
