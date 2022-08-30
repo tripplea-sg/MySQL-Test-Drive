@@ -51,8 +51,6 @@ innodb_flush_log_at_trx_commit=1
 Restore backup to instance 5306
 ```
 mysqlbackup --defaults-file=/home/opc/db/5306/my.cnf --backup-dir='/home/opc/db/backup/2022-08-29_18-45-16' --encrypt-password=password copy-back-and-apply-log
-
-cp /home/opc/db/backup/2022-08-29_18-45-16/meta/keyring_kef /home/opc/db/5306/data/component_keyring_encrypted_file
 ```
 Start instance 5306
 ```
