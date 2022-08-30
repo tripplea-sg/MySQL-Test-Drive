@@ -52,5 +52,17 @@ ps -ef | grep mysqlrouter
 
 rm -Rf /home/opc/software/router
 
+/home/opc/software/mysql-router-commercial-8.0.30-el7-x86_64/bin/mysqlrouter --bootstrap gradmin:grpass@localhost:5306 --directory router --account mycsrouter --force
 
+router/start.sh
+```
+Check connection using MySQL Router
+```
+mysql -ugradmin -pgrpass -h127.0.0.1 -P6446 -e "select @@port";
+```
+### 5. Making mycluster as PRIMARY cluster
+```
+mysqlsh gradmin:grpass@localhost:5307 -- clusterset setPrimaryCluster mycluster
+
+mysql -ugradmin -pgrpass -h127.0.0.1 -P6446 -e "select @@port";
 ```
