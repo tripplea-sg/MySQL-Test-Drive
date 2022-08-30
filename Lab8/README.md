@@ -34,5 +34,17 @@ mysqlsh gradmin:grpass@localhost:5307 -- clusterset status
 ```
 ### 4. Making cluster2 as PRIMARY cluster
 ```
+mysql -ugradmin -pgrpass -h127.0.0.1 -P6446 -e "select @@port";
+
 mysqlsh gradmin:grpass@localhost:5307 -- clusterset setPrimaryCluster cluster2
+
+mysqlsh gradmin:grpass@localhost:3307 -- clusterset status
+
+mysql -ugradmin -pgrpass -h127.0.0.1 -P6446 -e "select @@port";
+
+mysqlsh gradmin:grpass@localhost:3307 -- cluster status
+```
+Fix the router
+```
+
 ```
