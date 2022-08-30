@@ -101,10 +101,6 @@ Check cluster status
 mysqlsh gradmin:grpass@localhost:3306 -- cluster status
 ```
 ## 3. Setup MySQL Router
-Extract and install router
-```
-unzip MySQL-Router-8.0.30.zip
-tar -zxvf mysql-router-commercial-8.0.30-el7-x86_64.tar.gz
 ```
 Setup and run router
 ```
