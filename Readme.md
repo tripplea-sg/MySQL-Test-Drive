@@ -12,7 +12,7 @@ Introductory session to test drive the powerful MySQL database
 | [Lab 5](https://github.com/tripplea-sg/MySQL-Test-Drive/tree/master/Lab5) | Encryption and Data Masking |
 | [Lab 6](https://github.com/tripplea-sg/MySQL-Test-Drive/blob/master/Lab6) | InnoDB Cluster |
 | [Lab 7](https://github.com/tripplea-sg/MySQL-Test-Drive/blob/master/lab7/README.md) | MySQL Enterprise Backup |
-| [Lab 8](https://github.com/tripplea-sg/MySQL-Test-Drive/blob/master/lab7/README.md) | InnoDB ClusterSet |
+| [Lab 8](https://github.com/tripplea-sg/MySQL-Test-Drive/tree/master/Lab8) | InnoDB ClusterSet |
 
 
 
