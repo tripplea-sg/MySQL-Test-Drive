@@ -32,3 +32,7 @@ mysqlsh gradmin:grpass@localhost:5306 -- cluster add-instance gradmin:grpass@loc
 
 mysqlsh gradmin:grpass@localhost:5307 -- clusterset status
 ```
+### 4. Making cluster2 as PRIMARY cluster
+```
+mysqlsh gradmin:grpass@localhost:5307 -- clusterset setPrimaryCluster cluster2
+```
