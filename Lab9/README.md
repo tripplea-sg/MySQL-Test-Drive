@@ -80,7 +80,7 @@ datadir=/home/opc/archive/5.7/db
 binlog-format=ROW
 log-bin=/home/opc/archive/5.7/db/bin
 port=5700
-server_id=10
+server_id=20
 socket=/home/opc/archive/5.7/db/mysqld.sock
 log-error=/home/opc/archive/5.7/db/mysqld.log
 ```
@@ -187,8 +187,6 @@ mysql -uroot -h127.0.0.1 -P8000 -e "start slave for channel 'channel1';"
 
 mysql -uroot -h127.0.0.1 -P8000 -e "show slave status for channel 'channel1' \G"
 ```
-
-
 ### 3.3. Out of place Upgrade with No GTID
 ## 4. Upgrading from MySQL Community Edition 5.6
 ### 4.1. Inplace Upgrade
