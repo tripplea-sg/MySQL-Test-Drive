@@ -27,6 +27,8 @@ port=8000
 server_id=10
 socket=/home/opc/archive/8.0/db/mysqld.sock
 log-error=/home/opc/archive/8.0/db/mysqld.log
+gtid_mode=on
+enforce-gtid-consistency
 ```
 Create and start database using MySQL 8.0 Community
 ```
@@ -83,6 +85,8 @@ port=5700
 server_id=20
 socket=/home/opc/archive/5.7/db/mysqld.sock
 log-error=/home/opc/archive/5.7/db/mysqld.log
+gtid_mode=on
+enforce-gtid-consistency
 ```
 Create and start database using MySQL 8.0 Community
 ```
@@ -127,11 +131,6 @@ mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
 rm -Rf /home/opc/archive/5.7/db/*
 ```
 ### 3.2. Out of place Upgrade with GTID
-Create instance 5.7 with GTID by adding the following lines into option file (vi /home/opc/archive/5.7/my.cnf)
-```
-gtid_mode=on
-enforce-gtid-consistency
-```
 Create and start database using MySQL 8.0 Community
 ```
 /home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.7/my.cnf --initialize-insecure
@@ -187,6 +186,7 @@ mysql -uroot -h127.0.0.1 -P8000 -e "start slave for channel 'channel1';"
 
 mysql -uroot -h127.0.0.1 -P8000 -e "show slave status for channel 'channel1' \G"
 ```
+
 ### 3.3. Out of place Upgrade with No GTID
 ## 4. Upgrading from MySQL Community Edition 5.6
 ### 4.1. Inplace Upgrade
