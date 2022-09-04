@@ -64,6 +64,65 @@ mysql -uroot -h127.0.0.1 -P8000 -e "shutdown"
 ```
 ## 3. Upgrading from MySQL Community Edition 5.7
 ### 3.1. Inplace Upgrade
+Install MySQL Community 5.7
+```
+mv /home/opc/mysql-5.7.38-el7-x86_64.tar.gz /home/opc/archive/5.7/
+cd /home/opc/archive/5.7
+tar -zxvf mysql-5.7.38-el7-x86_64.tar.gz
+mkdir -p /home/opc/archive/5.7/db
+```
+Create opton file (vi /home/opc/archive/5.7/my.cnf)
+```
+[mysqld]
+datadir=/home/opc/archive/5.7/db
+binlog-format=ROW
+log-bin=/home/opc/archive/5.7/db/bin
+port=5700
+server_id=10
+socket=/home/opc/archive/5.7/db/mysqld.sock
+log-error=/home/opc/archive/5.7/db/mysqld.log
+```
+Create and start database using MySQL 8.0 Community
+```
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.7/my.cnf --initialize-insecure
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld_safe --defaults-file=/home/opc/archive/5.7/my.cnf &
+```
+Load world_x schema
+```
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysql -uroot -h127.0.0.1 -P5700
+
+source /home/opc/software/world_x-db/world_x.sql
+
+show databases;
+
+show plugins;
+
+exit;
+```
+Check Compatibility with MySQL 8.0
+```
+mysqlsh root@localhost:5700 -- util checkForServerUpgrade
+```
+If everything looks okay, then continue with upgrade. </br>
+Stop MySQL server
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
+```
+Upgrade to MySQL EE 8.0
+```
+. $HOME/.8030.env
+
+mysqld_safe --defaults-file=/home/opc/archive/5.7/my.cnf &
+
+mysql -uroot -h127.0.0.1 -P5700 -e "show databases"
+
+mysql -uroot -h127.0.0.1 -P5700 -e "show plugins"
+```
+Shutdown this database to safe server resource
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
+```
+
 ### 3.2. Out of place Upgrade with GTID
 ### 3.3. Out of place Upgrade with No GTID
 ## 4. Upgrading from MySQL Community Edition 5.6
