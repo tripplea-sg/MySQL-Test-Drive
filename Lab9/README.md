@@ -58,9 +58,11 @@ mysql -uroot -h127.0.0.1 -P8000 -e "show databases"
 
 mysql -uroot -h127.0.0.1 -P8000 -e "show plugins"
 ```
-Shutdown this database to safe server resource
+Shutdown this database and delete its files
 ```
 mysql -uroot -h127.0.0.1 -P8000 -e "shutdown"
+
+rm -Rf /home/opc/archive/8.0/db/*
 ```
 ## 3. Upgrading from MySQL Community Edition 5.7
 ### 3.1. Inplace Upgrade
@@ -118,12 +120,75 @@ mysql -uroot -h127.0.0.1 -P5700 -e "show databases"
 
 mysql -uroot -h127.0.0.1 -P5700 -e "show plugins"
 ```
-Shutdown this database to safe server resource
+Shutdown this database and delete files
 ```
 mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
+
+rm -Rf /home/opc/archive/5.7/db/*
+```
+### 3.2. Out of place Upgrade with GTID
+Create instance 5.7 with GTID by adding the following lines into option file (vi /home/opc/archive/5.7/my.cnf)
+```
+gtid_mode=on
+enforce-gtid-consistency
+```
+Create and start database using MySQL 8.0 Community
+```
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.7/my.cnf --initialize-insecure
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld_safe --defaults-file=/home/opc/archive/5.7/my.cnf &
+```
+Load world_x schema
+```
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysql -uroot -h127.0.0.1 -P5700
+
+source /home/opc/software/world_x-db/world_x.sql
+
+show databases;
+
+show plugins;
+
+show variables like '%gtid%';
+
+exit;
+```
+Backup database 5.7 using MySQL Shell
+```
+mkdir -p /home/opc/archive/5.7/backup
+
+mysqlsh root@localhost:5700 -- util dumpInstance /home/opc/archive/5.7/backup
+
+ls /home/opc/archive/5.7/backup
+
+cat /home/opc/archive/5.7/backup/@.json
+```
+Create database 8.0 using MySQL EE
+```
+. $HOME/.8030.env
+
+mysqld --defaults-file=/home/opc/archive/8.0/my.cnf --initialize-insecure
+
+mysqld_safe --defaults-file=/home/opc/archive/8.0/my.cnf &
+```
+Restore from backup to MySQL EE 8.0
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "set global local_infile=on"
+
+mysqlsh root@localhost:8000 -- util loadDump /home/opc/archive/5.7/backup --ignoreVersion
+```
+Create replication user on mysql 5.7
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "create user repl@'%' identified by 'repl'; grant replication slave on *.* to repl@'%';"
+```
+Create MySQL Replication from 5.7 to MySQL 8.0
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "change master to master_user='repl', master_host='127.0.0.1', master_port=5700, master_password='repl', master_auto_position=1 for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "start slave for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "show slave status for channel 'channel1' \G"
 ```
 
-### 3.2. Out of place Upgrade with GTID
+
 ### 3.3. Out of place Upgrade with No GTID
 ## 4. Upgrading from MySQL Community Edition 5.6
 ### 4.1. Inplace Upgrade
