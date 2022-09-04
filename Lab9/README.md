@@ -1,5 +1,5 @@
 # Upgrading to MySQL Enterprise Edition 8.0
-## Download binaries
+## 1. Download binaries
 Binaries can be downloaded from the trainer's VM as follow
 ```
 scp opc@10.0.0.203:/home/opc/*.tar.gz /home/opc/
@@ -9,7 +9,7 @@ Create new directory
 ```
 mkdir -p /home/opc/archive/8.0 /home/opc/archive/5.7 /home/opc/archive/5.6 /home/opc/archive/mariadb
 ```
-## Upgrading from MySQL Community Edition 8.0
+## 2. Upgrading from MySQL Community Edition 8.0
 Install MySQL Community 8.0
 ```
 mv /home/opc/mysql-8.0.30-el7-x86_64.tar.gz /home/opc/archive/8.0/
@@ -62,6 +62,12 @@ Shutdown this database to safe server resource
 ```
 mysql -uroot -h127.0.0.1 -P8000 -e "shutdown"
 ```
-## Upgrading from MySQL Community Edition 5.7
-## Upgrading from MySQL Community Edition 5.6
+## 3. Upgrading from MySQL Community Edition 5.7
+### 3.1. Inplace Upgrade
+### 3.2. Out of place Upgrade with GTID
+### 3.3. Out of place Upgrade with No GTID
+## 4. Upgrading from MySQL Community Edition 5.6
+### 4.1. Inplace Upgrade
+### 4.2. Out of place Upgrade with GTID
+### 4.3. Out of place Upgrade with No GTID
 ## Migrating from MariaDB
