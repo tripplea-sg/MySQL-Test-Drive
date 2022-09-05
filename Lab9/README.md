@@ -192,11 +192,42 @@ mysql -uroot -h127.0.0.1 -P8000 -e "shutdown"
 
 rm -Rf /home/opc/archive/8.0/db/*
 ```
-Stop database instance 5.7
+Stop and remove database instance 5.7
 ```
 mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
+rm -Rf /home/opc/archive/5.7/db/*
 ```
 ### 3.3. Out of place Upgrade with No GTID
+Create option file for starting database in No GTID mode
+```
+cat /home/opc/archive/5.7/my.cnf | grep -v gtid > /home/opc/archive/5.7/my-nogtid.cnf
+```
+Start database 5.7 with no GTID
+```
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.7/my-nogtid.cnf --initialize-insecure
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld_safe --defaults-file=/home/opc/archive/5.7/my-nogtid.cnf &
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysql -uroot -h127.0.0.1 -P5700 -e "source /home/opc/software/world_x-db/world_x.sql"
+```
+Check binlog position
+```
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysql -uroot -h127.0.0.1 -P5700 -e "show master status"
+```
+Backup database
+```
+rm -Rf /home/opc/archive/5.7/backup/*
+mysqlsh root@localhost:5700 -- util dumpInstance /home/opc/archive/5.7/backup
+```
+Create MySQL 8.0 EE
+```
+. $HOME/.8030.env
+mysqld --defaults-file=/home/opc/archive/8.0/my.cnf --initialize-insecure
+mysqld_safe --defaults-file=/home/opc/archive/8.0/my.cnf &
+```
+Restore database
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "set global local_infile=on"
+mysqlsh root@localhost:8000 -- util loadDump /home/opc/archive/5.7/backup --ignoreVersion
+```
 ## 4. Upgrading from MySQL Community Edition 5.6
 ### 4.1. Inplace Upgrade
 ### 4.2. Out of place Upgrade with GTID
