@@ -349,14 +349,39 @@ mysqlsh root@localhost:5600 -- util dumpInstance '/home/opc/archive/5.6/backup'
 Create and start database using MySQL 5.7 Community
 ```
 rm -Rf /home/opc/archive/5.7/db/*
+echo "master_info_repository=TABLE" >> /home/opc/archive/5.7/my.cnf
+echo "relay_log_info_repository=TABLE" >> /home/opc/archive/5.7/my.cnf
 /home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.7/my.cnf --initialize-insecure
 /home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld_safe --defaults-file=/home/opc/archive/5.7/my.cnf &
 ```
 Create and start database using MySQL 8.0 Enterprise
 ```
-rm -Rf /home/opc/archive/8.0/*
+rm -Rf /home/opc/archive/8.0/db/*
 . $HOME/.8030.env
 mysqld --defaults-file=/home/opc/archive/8.0/my.cnf --initialize-insecure
+mysqld_safe --defaults-file=/home/opc/archive/8.0/my.cnf &
 ```
+Create replication user on 5.6
+```
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "create user repl@'localhost'; set password for repl@'localhost' = password('repl'); grant replication slave on *.* to repl@'localhost';"
+```
+Create replication channel on MySQL 5.7 pointing to MySQL 5.6
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "change master to master_user='repl', master_host='127.0.0.1', master_port=5600, master_password='repl', master_auto_position=1 for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P5700 -e "start slave for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P5700 -e "show slave status for channel 'channel1' \G"
+```
+Create replication channel on MySQL 8.0 Enterprise pointing to MySQL 5.7 Community
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "change master to master_user='repl', master_host='127.0.0.1', master_port=5700, master_password='repl', master_auto_position=1 for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "start slave for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "show slave status for channel 'channel1' \G"
+```
+
+
 ### 4.3. Out of place Upgrade with No GTID
 ## 5. Migrating from MariaDB
