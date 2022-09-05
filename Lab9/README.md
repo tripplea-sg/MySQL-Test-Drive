@@ -186,7 +186,16 @@ mysql -uroot -h127.0.0.1 -P8000 -e "start slave for channel 'channel1';"
 
 mysql -uroot -h127.0.0.1 -P8000 -e "show slave status for channel 'channel1' \G"
 ```
+Stop database 8.0 and remove instance
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "shutdown"
 
+rm -Rf /home/opc/archive/8.0/db/*
+```
+Stop database instance 5.7
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
+```
 ### 3.3. Out of place Upgrade with No GTID
 ## 4. Upgrading from MySQL Community Edition 5.6
 ### 4.1. Inplace Upgrade
