@@ -324,7 +324,11 @@ mysqld_safe --defaults-file=/home/opc/archive/5.6/my.cnf &
 mysql -uroot -h127.0.0.1 -P5600 -e "show plugins"
 mysql -uroot -h127.0.0.1 -P5600 -e "select @@version"
 ```
-
+Stop and delete database
+```
+mysql -uroot -h127.0.0.1 -P5600 -e "shutdown"
+rm -Rf /home/opc/archive/5.6/db/*
+```
 ### 4.2. Out of place Upgrade with GTID
 ### 4.3. Out of place Upgrade with No GTID
 ## 5. Migrating from MariaDB
