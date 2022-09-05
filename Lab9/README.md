@@ -201,4 +201,4 @@ mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
 ### 4.1. Inplace Upgrade
 ### 4.2. Out of place Upgrade with GTID
 ### 4.3. Out of place Upgrade with No GTID
-## Migrating from MariaDB
+## 5. Migrating from MariaDB
