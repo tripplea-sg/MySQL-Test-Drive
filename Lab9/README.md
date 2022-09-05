@@ -263,6 +263,27 @@ rm -Rf /home/opc/archive/5.7/db/*
 ```
 ## 4. Upgrading from MySQL Community Edition 5.6
 ### 4.1. Inplace Upgrade
+Install MySQL Community 5.6
+```
+mv /home/opc/mysql-5.6.23-linux-glibc2.5-x86_64.tar.gz /home/opc/archive/5.6/
+cd /home/opc/archive/5.6
+tar -zxvf mysql-5.6.23-linux-glibc2.5-x86_64.tar.gz
+mkdir -p /home/opc/archive/5.6/db
+```
+Create opton file (vi /home/opc/archive/5.6/my.cnf)
+```
+[mysqld]
+datadir=/home/opc/archive/5.6/db
+binlog-format=ROW
+log-bin=/home/opc/archive/5.6/db/bin
+port=5600
+server_id=30
+socket=/home/opc/archive/5.6/db/mysqld.sock
+log-error=/home/opc/archive/5.6/db/mysqld.log
+gtid_mode=on
+enforce-gtid-consistency
+```
+
 ### 4.2. Out of place Upgrade with GTID
 ### 4.3. Out of place Upgrade with No GTID
 ## 5. Migrating from MariaDB
