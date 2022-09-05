@@ -423,5 +423,13 @@ mysql -uroot -h127.0.0.1 -P5700 -e "select @@version; select * from dev.test;"
 
 mysql -uroot -h127.0.0.1 -P8000 -e "select @@version; select * from dev.test;"
 ```
+Shutdown and remove all instances
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "shutdown"
+mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysqladmin -uroot -h127.0.0.1 -P5600 shutdown
+
+rm -Rf /home/opc/archive/5.6/db/* /home/opc/archive/5.7/db/* /home/opc/archive/8.0/db/*
+```
 ### 4.3. Out of place Upgrade with No GTID
 ## 5. Migrating from MariaDB
