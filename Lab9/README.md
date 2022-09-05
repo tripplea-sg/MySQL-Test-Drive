@@ -88,7 +88,7 @@ log-error=/home/opc/archive/5.7/db/mysqld.log
 gtid_mode=on
 enforce-gtid-consistency
 ```
-Create and start database using MySQL 8.0 Community
+Create and start database using MySQL 5.7 Community
 ```
 /home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.7/my.cnf --initialize-insecure
 /home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld_safe --defaults-file=/home/opc/archive/5.7/my.cnf &
@@ -301,7 +301,7 @@ wget https://downloads.mysql.com/docs/sakila-db.zip
 unzip sakila-db.zip 
 /home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "source /home/opc/archive/5.6/sakila-db/sakila-schema.sql"
 /home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "source /home/opc/archive/5.6/sakila-db/sakila-data.sql"
-home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "show databases"
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "show databases"
 ```
 Upgrade database to MySQL 5.7 Community
 ```
@@ -330,5 +330,33 @@ mysql -uroot -h127.0.0.1 -P5600 -e "shutdown"
 rm -Rf /home/opc/archive/5.6/db/*
 ```
 ### 4.2. Out of place Upgrade with GTID
+Create and start database
+```
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/scripts/mysql_install_db --defaults-file=/home/opc/archive/5.6/my.cnf --basedir=/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64
+
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.6/my.cnf &
+```
+Load sakila schema
+```
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "source /home/opc/archive/5.6/sakila-db/sakila-schema.sql"
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "source /home/opc/archive/5.6/sakila-db/sakila-data.sql"
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "show databases"
+```
+Backup MySQL 5.6
+```
+mysqlsh root@localhost:5600 -- util dumpInstance '/home/opc/archive/5.6/backup'
+```
+Create and start database using MySQL 5.7 Community
+```
+rm -Rf /home/opc/archive/5.7/db/*
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.7/my.cnf --initialize-insecure
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld_safe --defaults-file=/home/opc/archive/5.7/my.cnf &
+```
+Create and start database using MySQL 8.0 Enterprise
+```
+rm -Rf /home/opc/archive/8.0/*
+. $HOME/.8030.env
+mysqld --defaults-file=/home/opc/archive/8.0/my.cnf --initialize-insecure
+```
 ### 4.3. Out of place Upgrade with No GTID
 ## 5. Migrating from MariaDB
