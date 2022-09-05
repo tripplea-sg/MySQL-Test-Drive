@@ -269,6 +269,10 @@ mv /home/opc/mysql-5.6.23-linux-glibc2.5-x86_64.tar.gz /home/opc/archive/5.6/
 cd /home/opc/archive/5.6
 tar -zxvf mysql-5.6.23-linux-glibc2.5-x86_64.tar.gz
 mkdir -p /home/opc/archive/5.6/db
+sudo yum install perl perl-Data-Dumper
+sudo mkdir -p /usr/local/mysql/share
+sudo chown -Rf opc:opc /usr/local/mysql
+ln -s /home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/share/english/errmsg.sys /usr/local/mysql/share/errmsg.sys
 ```
 Create opton file (vi /home/opc/archive/5.6/my.cnf)
 ```
@@ -282,6 +286,17 @@ socket=/home/opc/archive/5.6/db/mysqld.sock
 log-error=/home/opc/archive/5.6/db/mysqld.log
 gtid_mode=on
 enforce-gtid-consistency
+log_slave_updates = TRUE
+```
+Create and start database
+```
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/scripts/mysql_install_db --defaults-file=/home/opc/archive/5.6/my.cnf --basedir=/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64
+
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.6/my.cnf &
+```
+Load world_x schema
+```
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "
 ```
 
 ### 4.2. Out of place Upgrade with GTID
