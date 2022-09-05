@@ -565,7 +565,7 @@ mysql -uroot -h127.0.0.1 -e "flush privileges; set password for root@'localhost'
 mysql -uroot -h127.0.0.1 -P3306 -proot -e "source /home/opc/archive/5.6/sakila-db/sakila-schema.sql"
 mysql -uroot -h127.0.0.1 -P3306 -proot -e "source /home/opc/archive/5.6/sakila-db/sakila-data.sql"
 ```
-Migrate to MySQL 8.0 Community Edition
+Migrate to MySQL 8.0 Enterprise Edition
 ```
 mysqlsh root@localhost:3306 -- util dumpInstance /home/opc/archive/mariadb/backup
 
