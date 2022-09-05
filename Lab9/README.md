@@ -250,6 +250,17 @@ Check transaction on MySQL 8.0
 mysql -uroot -h127.0.0.1 -P8000 -e "show databases;"
 mysql -uroot -h127.0.0.1 -P8000 -e "select user, host from mysql.user"
 ```
+Stop database 8.0 and remove instance
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "shutdown"
+
+rm -Rf /home/opc/archive/8.0/db/*
+```
+Stop and remove database instance 5.7
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
+rm -Rf /home/opc/archive/5.7/db/*
+```
 ## 4. Upgrading from MySQL Community Edition 5.6
 ### 4.1. Inplace Upgrade
 ### 4.2. Out of place Upgrade with GTID
