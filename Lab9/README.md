@@ -228,6 +228,14 @@ Restore database
 mysql -uroot -h127.0.0.1 -P8000 -e "set global local_infile=on"
 mysqlsh root@localhost:8000 -- util loadDump /home/opc/archive/5.7/backup --ignoreVersion
 ```
+Create MySQL Replication from 5.7 to MySQL 8.0
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "change master to master_user='repl', master_host='127.0.0.1', master_port=5700, master_password='repl', master_auto_position=1 for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "start slave for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "show slave status for channel 'channel1' \G"
+```
 ## 4. Upgrading from MySQL Community Edition 5.6
 ### 4.1. Inplace Upgrade
 ### 4.2. Out of place Upgrade with GTID
