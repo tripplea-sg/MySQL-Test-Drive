@@ -249,6 +249,7 @@ Check transaction on MySQL 8.0
 ```
 mysql -uroot -h127.0.0.1 -P8000 -e "show databases;"
 mysql -uroot -h127.0.0.1 -P8000 -e "select user, host from mysql.user"
+mysql -uroot -h127.0.0.1 -P5600 -e "select @@version"
 ```
 Stop database 8.0 and remove instance
 ```
@@ -294,9 +295,34 @@ Create and start database
 
 /home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.6/my.cnf &
 ```
-Load world_x schema
+Load sakila schema
 ```
-/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "
+wget https://downloads.mysql.com/docs/sakila-db.zip
+unzip sakila-db.zip 
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "source /home/opc/archive/5.6/sakila-db/sakila-schema.sql"
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "source /home/opc/archive/5.6/sakila-db/sakila-data.sql"
+home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "show databases"
+```
+Upgrade database to MySQL 5.7 Community
+```
+/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysqladmin -uroot -h127.0.0.1 -P5600 shutdown
+
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.6/my.cnf &
+
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysql_upgrade -uroot -h127.0.0.1 -P5600
+
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "shutdown"
+```
+Database is upgraded to MySQL 5.7. Now, Upgrade to MySQL EE 8.0
+```
+/home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysql -uroot -h127.0.0.1 -P5600 -e "shutdown"
+
+. $HOME/.8030.env
+
+mysqld_safe --defaults-file=/home/opc/archive/5.6/my.cnf &
+
+mysql -uroot -h127.0.0.1 -P5600 -e "show plugins"
+mysql -uroot -h127.0.0.1 -P5600 -e "select @@version"
 ```
 
 ### 4.2. Out of place Upgrade with GTID
