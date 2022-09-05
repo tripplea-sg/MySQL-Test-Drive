@@ -534,4 +534,87 @@ mysql -uroot -h127.0.0.1 -P5700 -e "shutdown"
 rm -Rf /home/opc/archive/5.6/db/* /home/opc/archive/5.7/db/* /home/opc/archive/8.0/db/*
 ```
 ## 5. Migrating from MariaDB
+Install MariaDB
+```
+cd /home/opc
+mv mariadb-10.9.2-linux-systemd-x86_64.tar.gz archive/mariadb/
 
+cd archive/mariadb/
+tar -zxvf mariadb-10.9.2-linux-systemd-x86_64.tar.gz
+mkdir db
+```
+Create option file for mariadb (vi /home/opc/archive/mariadb/my.cnf)
+```
+[mysqld]
+datadir=/home/opc/archive/mariadb/db
+binlog-format=ROW
+log-bin=/home/opc/archive/mariadb/db/bin
+port=3306
+server_id=50
+socket=/home/opc/archive/mariadb/db/mysqld.sock
+log-error=/home/opc/archive/mariadb/db/mysqld.log
+```
+Create mariadb database
+```
+/home/opc/archive/mariadb/mariadb-10.9.2-linux-systemd-x86_64/scripts/mysql_install_db --defaults-file=my.cnf
+/home/opc/archive/mariadb/mariadb-10.9.2-linux-systemd-x86_64/bin/mysqld_safe --defaults-file=my.cnf --skip-grant-table &
+
+mysql -uroot -h127.0.0.1 -e "flush privileges; set password for root@'localhost'=password('root'); shutdown;"
+/home/opc/archive/mariadb/mariadb-10.9.2-linux-systemd-x86_64/bin/mysqld_safe --defaults-file=my.cnf &
+
+mysql -uroot -h127.0.0.1 -P3306 -proot -e "source /home/opc/archive/5.6/sakila-db/sakila-schema.sql"
+mysql -uroot -h127.0.0.1 -P3306 -proot -e "source /home/opc/archive/5.6/sakila-db/sakila-data.sql"
+```
+Migrate to MySQL 8.0 Community Edition
+```
+mysqlsh root@localhost:3306 -- util dumpInstance /home/opc/archive/mariadb/backup
+
+. $HOME/.8030.env
+mysqld --defaults-file=/home/opc/archive/8.0/my.cnf --initialize-insecure
+mysqld_safe --defaults-file=/home/opc/archive/8.0/my.cnf &
+
+mysql -uroot -h127.0.0.1 -P8000 -e "set global local_infile=on"
+mysqlsh root@localhost:8000 -- util loadDump /home/opc/archive/mariadb/backup --ignoreVersion
+```
+Create script for binary log shipping (vi /home/opc/archive/mariadb/log_shipping.sh)
+```
+#!/bin/bash
+
+inotifywait -m /home/opc/archive/mariadb/db -e create -e moved_to |
+    while read dir action file; do
+        echo "This is binlog file created = $file" 
+	cat /home/opc/archive/mariadb/db/bin.index | grep $file | wc -l
+	if [ `cat /home/opc/archive/mariadb/db/bin.index | grep $file | wc -l` -gt 0 ]; then 
+         	echo "The new Binlog file '$file' appeared in directory '$dir' via '$action'"
+       
+ 		cat /home/opc/archive/mariadb/db/bin.index | grep $file | sed 's/\//\\\//g' > /tmp/log_shipping.dummy
+		x=`cat /tmp/log_shipping.dummy`
+		echo "sed -n '$x/{x;p;d;}; x' /home/opc/archive/mariadb/db/bin.index > /tmp/log_shipping_identity" > /tmp/log_shipping_dummy.sh
+		chmod u+x /tmp/log_shipping_dummy.sh
+		/tmp/log_shipping_dummy.sh
+		y=`cat /tmp/log_shipping_identity`
+		
+		echo "Processing $y"	
+        	# reading new binlog
+        	/home/opc/archive/mariadb/mariadb-10.9.2-linux-systemd-x86_64/bin/mysqlbinlog $y --base64-output=DECODE-ROWS -vv | grep -v SET | sed 's/#Q>//g' | grep -v "#" | grep -v ROLLBACK | grep -v DELIMITER | grep -v "START TRANSACTION" | grep -v COMMIT | grep -v "\/" > /home/opc/archive/mariadb/transactions.sql
+          
+		sed -e 's/$/;/' -i /home/opc/archive/mariadb/transactions.sql
+          	# Apply to MySQL 8.0
+	  	. /home/opc/.8030.env
+          	mysql -uroot -h127.0.0.1 -P8000 -e "source /home/opc/archive/mariadb/transactions.sql";
+    	fi
+    done
+```
+Change mode and run 
+```
+chmod u+x /home/opc/archive/mariadb/log_shipping.sh
+
+sudo yum install -y inotify-tools-3.14-8.el7.x86_64
+
+/home/opc/archive/mariadb/log_shipping.sh &
+```
+Test by login to mariadb
+```
+mysql -uroot -h127.0.0.1 -proot -e "create database repl; create table repl.test (i int); insert into repl.test values (1), (2), (3); flush binary logs;"
+mysql -uroot -h127.0.0.1 -P8000 -e "select * from repl.test;"
+```
