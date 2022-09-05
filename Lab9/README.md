@@ -228,13 +228,27 @@ Restore database
 mysql -uroot -h127.0.0.1 -P8000 -e "set global local_infile=on"
 mysqlsh root@localhost:8000 -- util loadDump /home/opc/archive/5.7/backup --ignoreVersion
 ```
+Create replication user on mysql 5.7
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "create user repl@'%' identified by 'repl'; grant replication slave on *.* to repl@'%';"
+```
 Create MySQL Replication from 5.7 to MySQL 8.0
 ```
-mysql -uroot -h127.0.0.1 -P8000 -e "change master to master_user='repl', master_host='127.0.0.1', master_port=5700, master_password='repl', master_auto_position=1 for channel 'channel1';"
+mysql -uroot -h127.0.0.1 -P8000 -e "change master to master_host='127.0.0.1', master_port=5700, master_user='repl', master_password='repl', master_log_file='bin.000002', master_log_pos=911056, ASSIGN_GTIDS_TO_ANONYMOUS_TRANSACTIONS=LOCAL for channel 'channel1';"
 
 mysql -uroot -h127.0.0.1 -P8000 -e "start slave for channel 'channel1';"
 
 mysql -uroot -h127.0.0.1 -P8000 -e "show slave status for channel 'channel1' \G"
+```
+Making transaction on MySQL 5.7
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "create database test;"
+mysql -uroot -h127.0.0.1 -P5700 -e "create user apps@'%' identified by 'apps';"
+```
+Check transaction on MySQL 8.0
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "show databases;"
+mysql -uroot -h127.0.0.1 -P8000 -e "select user, host from mysql.user"
 ```
 ## 4. Upgrading from MySQL Community Edition 5.6
 ### 4.1. Inplace Upgrade
