@@ -327,11 +327,11 @@ mysql -uroot -h127.0.0.1 -P5600 -e "select @@version"
 Stop and delete database
 ```
 mysql -uroot -h127.0.0.1 -P5600 -e "shutdown"
-rm -Rf /home/opc/archive/5.6/db/*
 ```
 ### 4.2. Out of place Upgrade with GTID
 Create and start database
 ```
+rm -Rf /home/opc/archive/5.6/db/*
 /home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/scripts/mysql_install_db --defaults-file=/home/opc/archive/5.6/my.cnf --basedir=/home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64
 
 /home/opc/archive/5.6/mysql-5.6.23-linux-glibc2.5-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.6/my.cnf &
@@ -344,6 +344,7 @@ Load sakila schema
 ```
 Backup MySQL 5.6
 ```
+rm /home/opc/archive/5.6/backup/*
 mysqlsh root@localhost:5600 -- util dumpInstance '/home/opc/archive/5.6/backup'
 ```
 Create and start database using MySQL 5.7 Community
@@ -351,15 +352,13 @@ Create and start database using MySQL 5.7 Community
 rm -Rf /home/opc/archive/5.7/db/*
 echo "master_info_repository=TABLE" >> /home/opc/archive/5.7/my.cnf
 echo "relay_log_info_repository=TABLE" >> /home/opc/archive/5.7/my.cnf
+echo "log_slave_updates=TRUE" >> /home/opc/archive/5.7/my.cnf
 /home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld --defaults-file=/home/opc/archive/5.7/my.cnf --initialize-insecure
 /home/opc/archive/5.7/mysql-5.7.38-el7-x86_64/bin/mysqld_safe --defaults-file=/home/opc/archive/5.7/my.cnf &
 ```
-Create and start database using MySQL 8.0 Enterprise
+Restore database backup to MySQL 5.7 Community 
 ```
-rm -Rf /home/opc/archive/8.0/db/*
-. $HOME/.8030.env
-mysqld --defaults-file=/home/opc/archive/8.0/my.cnf --initialize-insecure
-mysqld_safe --defaults-file=/home/opc/archive/8.0/my.cnf &
+mysqlsh root@localhost:5700 -- util loadDump /home/opc/archive/5.6/backup --ignoreVersion
 ```
 Create replication user on 5.6
 ```
@@ -373,6 +372,24 @@ mysql -uroot -h127.0.0.1 -P5700 -e "start slave for channel 'channel1';"
 
 mysql -uroot -h127.0.0.1 -P5700 -e "show slave status for channel 'channel1' \G"
 ```
+Backup database 5.7
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "stop slave for channel 'channel1';"
+rm -Rf /home/opc/archive/5.7/backup/*
+mysqlsh root@localhost:5700 -- util dumpInstance /home/opc/archive/5.7/backup
+```
+Create and start database using MySQL 8.0 Enterprise
+```
+rm -Rf /home/opc/archive/8.0/db/*
+. $HOME/.8030.env
+mysqld --defaults-file=/home/opc/archive/8.0/my.cnf --initialize-insecure
+mysqld_safe --defaults-file=/home/opc/archive/8.0/my.cnf &
+```
+Restore from backup of MySQL 5.7 to MySQL 8.0 Enterprise
+```
+mysql -uroot -h127.0.0.1 -P8000 -e "set global local_infile=on"
+mysqlsh root@localhost:8000 -- util loadDump /home/opc/archive/5.7/backup --ignoreVersion
+```
 Create replication channel on MySQL 8.0 Enterprise pointing to MySQL 5.7 Community
 ```
 mysql -uroot -h127.0.0.1 -P8000 -e "change master to master_user='repl', master_host='127.0.0.1', master_port=5700, master_password='repl', master_auto_position=1 for channel 'channel1';"
@@ -380,8 +397,31 @@ mysql -uroot -h127.0.0.1 -P8000 -e "change master to master_user='repl', master_
 mysql -uroot -h127.0.0.1 -P8000 -e "start slave for channel 'channel1';"
 
 mysql -uroot -h127.0.0.1 -P8000 -e "show slave status for channel 'channel1' \G"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "stop slave for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "set global gtid_purged='a0c01bc0-2d2a-11ed-93d1-02001700441b:66-94'"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "start slave for channel 'channel1';"
+
+mysql -uroot -h127.0.0.1 -P8000 -e "show slave status for channel 'channel1' \G"
 ```
+Start replication on MySQL 5.7
+```
+mysql -uroot -h127.0.0.1 -P5700 -e "start slave for channel 'channel1';"
+mysql -uroot -h127.0.0.1 -P5700 -e "show slave status for channel 'channel1' \G"
+```
+Create transaction on MySQL 5.6
+```
+mysql -uroot -h127.0.0.1 -P5600 -e "create database dev; create table dev.test (i int); insert into dev.test values (1), (2), (3);"
+```
+Check replication result
+```
+mysql -uroot -h127.0.0.1 -P5600 -e "select @@version"
 
+mysql -uroot -h127.0.0.1 -P5700 -e "select @@version; select * from dev.test;"
 
+mysql -uroot -h127.0.0.1 -P8000 -e "select @@version; select * from dev.test;"
+```
 ### 4.3. Out of place Upgrade with No GTID
 ## 5. Migrating from MariaDB
