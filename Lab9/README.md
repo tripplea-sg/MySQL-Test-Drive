@@ -596,9 +596,13 @@ inotifywait -m /home/opc/archive/mariadb/db -e create -e moved_to |
 		
 		echo "Processing $y"	
         	# reading new binlog
-        	/home/opc/archive/mariadb/mariadb-10.9.2-linux-systemd-x86_64/bin/mysqlbinlog $y --base64-output=DECODE-ROWS -vv | grep -v SET | sed 's/#Q>//g' | grep -v "#" | grep -v ROLLBACK | grep -v DELIMITER | grep -v "START TRANSACTION" | grep -v COMMIT | grep -v "\/" > /home/opc/archive/mariadb/transactions.sql
-          
-		sed -e 's/$/;/' -i /home/opc/archive/mariadb/transactions.sql
+		
+		/home/opc/archive/mariadb/mariadb-10.9.2-linux-systemd-x86_64/bin/mysqlbinlog db/bin.000003 --base64-output=DECODE-ROWS -vv | grep -v SET | sed 's/#Q>//g' | grep -v "#" | grep -v ROLLBACK | grep -v "\/" | grep -v "START TRANSACTION" | grep -v "DELIMITER" > /tmp/1.lst
+		
+		rm /home/opc/archive/mariadb/transactions.sql
+		
+		while IFS= read -r line; do if [[ $line = " ("* ]]; then if [[ $line = *")" ]]; then echo "$line;" >> /home/opc/archive/mariadb/transactions.sql; else if [[ $line = *"," ]]; then echo "$line" >> /home/opc/archive/mariadb/transactions.sql; else echo "$line);" >> /home/opc/archive/mariadb/transactions.sql; fi; fi; else echo "$line" >> /home/opc/archive/mariadb/transactions.sql; fi; done < /tmp/1.lst
+		
           	# Apply to MySQL 8.0
 	  	. /home/opc/.8030.env
           	mysql -uroot -h127.0.0.1 -P8000 -e "source /home/opc/archive/mariadb/transactions.sql";
