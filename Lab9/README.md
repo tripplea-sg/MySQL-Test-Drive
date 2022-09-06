@@ -344,7 +344,7 @@ Load sakila schema
 ```
 Backup MySQL 5.6
 ```
-rm /home/opc/archive/5.6/backup/*
+mkdir -p /home/opc/archive/5.6/backup
 mysqlsh root@localhost:5600 -- util dumpInstance '/home/opc/archive/5.6/backup'
 ```
 Create and start database using MySQL 5.7 Community
