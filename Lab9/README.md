@@ -601,8 +601,8 @@ inotifywait -m /home/opc/archive/mariadb/db -e create -e moved_to |
 		
 		rm /home/opc/archive/mariadb/transactions.sql
 		
-		while IFS= read -r line; do if [[ $line = " ("* ]]; then if [[ $line = *")" ]]; then echo "$line;" >> /home/opc/archive/mariadb/transactions.sql; else if [[ $line = *"," ]]; then echo "$line" >> /home/opc/archive/mariadb/transactions.sql; else echo "$line);" >> /home/opc/archive/mariadb/transactions.sql; fi; fi; else echo "$line" >> /home/opc/archive/mariadb/transactions.sql; fi; done < /tmp/1.lst
-		
+	        while IFS= read -r line; do if [[ $line = " ("* ]]; then if [[ $line = *")" ]]; then echo "$line;" >> /home/opc/archive/mariadb/transactions.sql; else if [[ $line = *"," ]]; then echo "$line" >> /home/opc/archive/mariadb/transactions.sql; else echo "$line);" >> /home/opc/archive/mariadb/transactions.sql; fi; fi; else if [[ $line = *"," ]]; then echo "$line" >> /home/opc/archive/mariadb/transactions.sql; else echo "$line;" >> /home/opc/archive/mariadb/transactions.sql; fi; fi; done < /tmp/1.lst
+	
           	# Apply to MySQL 8.0
 	  	. /home/opc/.8030.env
           	mysql -uroot -h127.0.0.1 -P8000 -e "source /home/opc/archive/mariadb/transactions.sql";
