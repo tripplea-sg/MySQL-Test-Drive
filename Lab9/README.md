@@ -597,7 +597,7 @@ inotifywait -m /home/opc/archive/mariadb/db -e create -e moved_to |
 		echo "Processing $y"	
         	# reading new binlog
 		
-		/home/opc/archive/mariadb/mariadb-10.9.2-linux-systemd-x86_64/bin/mysqlbinlog db/bin.000003 --base64-output=DECODE-ROWS -vv | grep -v SET | sed 's/#Q>//g' | grep -v "#" | grep -v ROLLBACK | grep -v "\/" | grep -v "START TRANSACTION" | grep -v "DELIMITER" > /tmp/1.lst
+		/home/opc/archive/mariadb/mariadb-10.9.2-linux-systemd-x86_64/bin/mysqlbinlog $y --base64-output=DECODE-ROWS -vv | grep -v SET | sed 's/#Q>//g' | grep -v "#" | grep -v ROLLBACK | grep -v "\/" | grep -v "START TRANSACTION" | grep -v "DELIMITER" > /tmp/1.lst
 		
 		rm /home/opc/archive/mariadb/transactions.sql
 		
